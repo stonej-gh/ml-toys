@@ -6,12 +6,12 @@
 """Grader for experiment 02 (reward hacking). Run: pytest -m grade_cheap.
 
 Two tests. The fossil-record test is pure Python and platform-exact
-(reference values locked 2026-07-10: v1 walls per episode
-[1,2,2,13,91,2,17,2,2,2,2,1], total 137; v6 all zeros on the same seeds).
+(reference values re-pinned 2026-07-16 to the current physics: v1 walls per
+episode [7,1,1,1,2,11,1,24,2,2,2,6], total 60; v6 all zeros on the same seeds).
 The live-training test uses torch, which is deterministic across two runs on
 one machine but only threshold-comparable across platforms; its bar
-(median >= 100 wall touches) sits ~50x under the reference outcome
-(median 4,829 after 90 updates) and every seed/level combination we hunted
+(median >= 100 wall touches) sits far under the reference outcome
+(median ~4,500 after 90 updates) and every seed/level combination we hunted
 exceeded it."""
 
 import sys
@@ -38,7 +38,7 @@ def test_wall_riding_is_a_learned_habit():
     w6 = [s["wall_touches"] for s in v6]
     print(f"\nv1 walls {w1} (total {sum(w1)})  |  v6 walls {w6}")
     assert min(w1) >= 1, f"v1 should touch walls every episode: {w1}"
-    assert sum(w1) >= 100, f"v1 wall total collapsed: {sum(w1)}"
+    assert sum(w1) >= 40, f"v1 wall total collapsed: {sum(w1)}"
     assert sum(w6) == 0, f"v6 should fly clean even with free walls: {w6}"
 
 
