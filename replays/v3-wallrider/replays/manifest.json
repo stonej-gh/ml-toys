@@ -1,0 +1,74 @@
+[
+ {
+  "file": "seed_000.json",
+  "update": 0,
+  "level": 10,
+  "episode": 0,
+  "outcome": "loss",
+  "wall_s": 6.7,
+  "walls": 1
+ },
+ {
+  "file": "seed_001.json",
+  "update": 0,
+  "level": 10,
+  "episode": 1,
+  "outcome": "win",
+  "wall_s": 7.8,
+  "walls": 2
+ },
+ {
+  "file": "seed_002.json",
+  "update": 0,
+  "level": 10,
+  "episode": 2,
+  "outcome": "win",
+  "wall_s": 6.0,
+  "walls": 1
+ },
+ {
+  "file": "seed_003.json",
+  "update": 0,
+  "level": 10,
+  "episode": 3,
+  "outcome": "win",
+  "wall_s": 6.0,
+  "walls": 1
+ },
+ {
+  "file": "seed_004.json",
+  "update": 0,
+  "level": 10,
+  "episode": 4,
+  "outcome": "win",
+  "wall_s": 5.8,
+  "walls": 1
+ },
+ {
+  "file": "seed_005.json",
+  "update": 0,
+  "level": 10,
+  "episode": 5,
+  "outcome": "win",
+  "wall_s": 7.0,
+  "walls": 2
+ },
+ {
+  "file": "seed_006.json",
+  "update": 0,
+  "level": 10,
+  "episode": 6,
+  "outcome": "win",
+  "wall_s": 5.8,
+  "walls": 1
+ },
+ {
+  "file": "seed_007.json",
+  "update": 0,
+  "level": 10,
+  "episode": 7,
+  "outcome": "win",
+  "wall_s": 7.8,
+  "walls": 2
+ }
+]

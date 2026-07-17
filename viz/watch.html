@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OrbitDuel training theater</title>
+<style>
+  /* palette roles per the dataviz reference (dark mode selected) */
+  :root {
+    --surface-1: #1a1a19;
+    --surface-2: #232322;
+    --text-primary: #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted: #8a897f;
+    --series-win: #3987e5;     /* categorical slot 1, dark */
+    --series-loss: #e66767;    /* categorical slot 6, dark */
+    --series-draw: #8a897f;    /* deliberate neutral */
+    --agent: #3987e5;          /* game identity: blue = learner (as in the game) */
+    --opponent: #d95926;       /* orange = scripted bot */
+    --grid: #33332f;
+  }
+  html, body { margin: 0; background: var(--surface-1); color: var(--text-primary);
+               font: 14px/1.45 -apple-system, "Helvetica Neue", sans-serif; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 18px 20px 40px; }
+  h1 { font-size: 17px; font-weight: 600; margin: 0 0 2px; }
+  .sub { color: var(--text-muted); font-size: 12.5px; margin-bottom: 14px; }
+  .tiles { display: flex; gap: 24px; margin-bottom: 12px; }
+  .tile .k { font-size: 26px; font-weight: 650; font-variant-numeric: tabular-nums; }
+  .tile .l { font-size: 11.5px; color: var(--text-muted); text-transform: uppercase;
+             letter-spacing: .06em; }
+  canvas { display: block; background: #0d0d14; border-radius: 8px; width: 100%; }
+  .controls { display: flex; gap: 10px; align-items: center; margin: 10px 0 26px;
+              flex-wrap: wrap; font-size: 13px; color: var(--text-secondary); }
+  select, button { background: var(--surface-2); color: var(--text-primary);
+                   border: 1px solid var(--grid); border-radius: 6px;
+                   padding: 4px 10px; font-size: 13px; }
+  button { cursor: pointer; }
+  .chartbox { position: relative; }
+  #tip { position: absolute; pointer-events: none; background: #262626ee;
+         border: 1px solid var(--grid); border-radius: 6px; padding: 6px 9px;
+         font-size: 12px; color: var(--text-secondary); display: none;
+         font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .legend { display: flex; gap: 16px; font-size: 12.5px; color: var(--text-secondary);
+            margin: 6px 2px; }
+  .chip { display: inline-block; width: 10px; height: 10px; border-radius: 3px;
+          margin-right: 5px; vertical-align: -1px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>OrbitDuel: the bot learns to duel</h1>
+  <div class="sub">PPO vs the scripted pilot ladder · every eval episode is archived; scrub anywhere, any time · <span id="status">loading…</span></div>
+
+  <div class="tiles">
+    <div class="tile"><div class="k" id="t-upd">–</div><div class="l">update</div></div>
+    <div class="tile"><div class="k" id="t-lvl">–</div><div class="l">opponent level</div></div>
+    <div class="tile"><div class="k" id="t-win">–</div><div class="l">eval win rate</div></div>
+    <div class="tile"><div class="k" id="t-n">–</div><div class="l">archived replays</div></div>
+  </div>
+
+  <canvas id="theater" width="1280" height="720"></canvas>
+  <div class="controls">
+    <button id="play">⏸ pause</button>
+    <label>speed <select id="speed"><option>1</option><option selected>2</option><option>4</option><option>8</option></select>×</label>
+    <label>episode <select id="pick"></select></label>
+    <label><input type="checkbox" id="follow" checked> follow latest</label>
+    <span id="epmeta" style="color:var(--text-muted)"></span>
+  </div>
+
+  <div class="legend">
+    <span><span class="chip" style="background:var(--series-win)"></span>win</span>
+    <span><span class="chip" style="background:var(--series-loss)"></span>loss</span>
+    <span><span class="chip" style="background:var(--series-draw)"></span>draw</span>
+    <span style="color:var(--text-muted)">· eval win/loss/draw rate vs the current curriculum level, by update</span>
+  </div>
+  <div class="chartbox">
+    <canvas id="chart" width="2080" height="480" style="width:100%"></canvas>
+    <div id="tip"></div>
+  </div>
+</div>
+
+<script>
+const H = 768, PLAY_W = 16/9*768, HOLE_R = 68, SHIP_R = 27;
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const Q = new URLSearchParams(location.search);
+// ?run=demo -> ../runs/demo (a live/local run); ?dir=replays/v3-wallrider -> a
+// shipped curated era. With no parameters, show the shipped champion episodes.
+const RUN = Q.get('run');
+const BASE = Q.get('dir') ? '../' + Q.get('dir')
+           : RUN ? `../runs/${RUN}` : '../replays/v6-final';
+
+// ---------- data polling -------------------------------------------------------
+let manifest = [], metrics = [], curFile = null, replay = null, frame = 0;
+async function poll() {
+  if (location.protocol === 'file:') {
+    document.getElementById('status').textContent =
+      'opened as a file:// URL, so the browser blocks loading replay data. ' +
+      'Serve the repo root instead:  python -m http.server 8000  then open ' +
+      'http://localhost:8000/viz/watch.html';
+    return;
+  }
+  try {
+    const m = await (await fetch(`${BASE}/replays/manifest.json?t=`+''+ + Date.now())).json();
+    const mres = await fetch(`${BASE}/metrics.csv?t=`+''+ + Date.now());
+    const csv = mres.ok ? await mres.text() : '';
+    metrics = csv.trim().split('\n').slice(1).map(l => {
+      const [u, lv, w, lo, d] = l.split(',');
+      return {u: +u, lv: +lv, win: +w, loss: +lo, draw: +d};
+    });
+    const grew = m.length > manifest.length;
+    manifest = m;
+    refreshPicker();
+    refreshTiles();
+    drawChart();
+    if (grew && document.getElementById('follow').checked) {
+      loadReplay(manifest[manifest.length - RECON(manifest)].file);   // newest win if any, else newest
+    }
+    if (!curFile && manifest.length) loadReplay(manifest[manifest.length - 1].file);
+    document.getElementById('status').textContent = 'live · polling every 4 s';
+  } catch (e) {
+    document.getElementById('status').textContent = 'waiting for first eval…';
+  }
+}
+// prefer the newest update's win episode when following
+function RECON(man) {
+  const lastU = man[man.length - 1].update;
+  for (let k = 0; k < man.length; k++) {
+    const e = man[man.length - 1 - k];
+    if (e.update !== lastU) break;
+    if (e.outcome === 'win') return 1 + k;
+  }
+  return 1;
+}
+async function loadReplay(file) {
+  curFile = file;
+  replay = await (await fetch(`${BASE}/replays/` + file + '?t=' + Date.now())).json();
+  frame = 0;
+  const m = replay.meta;
+  document.getElementById('epmeta').textContent =
+    `update ${m.update} · L${m.level} · ${m.outcome} · ${m.wall_s}s`;
+  document.getElementById('pick').value = file;
+}
+function refreshPicker() {
+  const pick = document.getElementById('pick');
+  const cur = pick.value;
+  pick.innerHTML = '';
+  for (let i = manifest.length - 1; i >= 0; i--) {
+    const e = manifest[i], o = document.createElement('option');
+    o.value = e.file;
+    o.textContent = `upd ${e.update} · L${e.level} · ep${e.episode} · ${e.outcome}`;
+    pick.appendChild(o);
+  }
+  pick.value = curFile || cur;
+}
+function refreshTiles() {
+  if (!metrics.length) return;
+  const last = metrics[metrics.length - 1];
+  document.getElementById('t-upd').textContent = last.u;
+  document.getElementById('t-lvl').textContent = last.lv > 0 ? 'L' + last.lv : 'league';
+  document.getElementById('t-win').textContent = Math.round(last.win * 100) + '%';
+  document.getElementById('t-n').textContent = manifest.length;
+}
+document.getElementById('pick').onchange = e => {
+  document.getElementById('follow').checked = false;
+  loadReplay(e.target.value);
+};
+
+// ---------- theater ------------------------------------------------------------
+const th = document.getElementById('theater'), tc = th.getContext('2d');
+const stars = Array.from({length: 130}, () => [Math.random(), Math.random(), Math.random()*1.4+0.4]);
+let playing = true;
+document.getElementById('play').onclick = () => {
+  playing = !playing;
+  document.getElementById('play').textContent = playing ? '⏸ pause' : '▶ play';
+};
+function toCanvas(x, y, W, Hc, s) { return [W/2 + x*s, Hc/2 - y*s]; }
+function ship(x, y, hd, color, thrusting, s) {
+  tc.save(); tc.translate(x, y); tc.rotate(-hd);   // canvas y-down: negate
+  if (thrusting) {                                  // flame out the tail
+    tc.fillStyle = '#ffd27a';
+    tc.beginPath(); tc.moveTo(-6*s, 14*s); tc.lineTo(0, 34*s); tc.lineTo(6*s, 14*s); tc.fill();
+  }
+  tc.fillStyle = color; tc.strokeStyle = '#ffffff44'; tc.lineWidth = 1.2;
+  tc.beginPath(); tc.moveTo(0, -20*s); tc.lineTo(13*s, 16*s); tc.lineTo(0, 9*s);
+  tc.lineTo(-13*s, 16*s); tc.closePath(); tc.fill(); tc.stroke();
+  tc.restore();
+}
+function drawFrame() {
+  const W = th.width, Hc = th.height, s = Hc / H;
+  tc.clearRect(0, 0, W, Hc);
+  tc.fillStyle = '#0d0d14'; tc.fillRect(0, 0, W, Hc);
+  for (const [sx, sy, sr] of stars) {
+    tc.fillStyle = 'rgba(255,255,255,0.5)';
+    tc.fillRect(sx*W, sy*Hc, sr, sr);
+  }
+  // arena bounds
+  const bw = PLAY_W*s, bh = H*s;
+  tc.strokeStyle = '#2e2e3a'; tc.strokeRect(W/2-bw/2, Hc/2-bh/2, bw, bh);
+  // hole: teal glow (the fork's palette) + black core
+  const [hx, hy] = toCanvas(0, 0, W, Hc, s);
+  const g = tc.createRadialGradient(hx, hy, HOLE_R*s*0.7, hx, hy, HOLE_R*s*2.2);
+  g.addColorStop(0, 'rgba(32,180,200,0.55)'); g.addColorStop(1, 'rgba(32,180,200,0)');
+  tc.fillStyle = g; tc.beginPath(); tc.arc(hx, hy, HOLE_R*s*2.2, 0, 7); tc.fill();
+  tc.fillStyle = '#000'; tc.beginPath(); tc.arc(hx, hy, HOLE_R*s, 0, 7); tc.fill();
+
+  if (!replay || !replay.frames.length) return;
+  frame = Math.min(frame, replay.frames.length - 1);
+  const f = replay.frames[frame];
+  const [ax, ay] = toCanvas(f[0], f[1], W, Hc, s);
+  const [bx, by] = toCanvas(f[4], f[5], W, Hc, s);
+  // recent trails
+  tc.lineWidth = 1.5;
+  for (const [i0, color] of [[0, css('--agent')], [4, css('--opponent')]]) {
+    tc.strokeStyle = color + '55'; tc.beginPath();
+    for (let k = Math.max(0, frame-90); k <= frame; k++) {
+      const p = toCanvas(replay.frames[k][i0], replay.frames[k][i0+1], W, Hc, s);
+      k === Math.max(0, frame-90) ? tc.moveTo(...p) : tc.lineTo(...p);
+    }
+    tc.stroke();
+  }
+  if (f[3]) ship(ax, ay, f[2], css('--agent'), f[8], s*1.4);
+  if (f[7]) ship(bx, by, f[6], css('--opponent'), f[9], s*1.4);
+  tc.fillStyle = '#fff';
+  for (const [lx, ly] of f[10]) {
+    const [px, py] = toCanvas(lx, ly, W, Hc, s);
+    tc.fillRect(px-1.5, py-1.5, 3.5, 3.5);
+  }
+  // event flashes near this frame
+  for (const ev of replay.events) {
+    const dt = frame - ev.f;
+    if (dt < 0 || dt > 14) continue;
+    const [px, py] = ev.ship === 0 ? [ax, ay] : [bx, by];
+    tc.strokeStyle = ev.ev === 'death' ? '#ff8d5c' : '#ffffff';
+    tc.lineWidth = 2; tc.globalAlpha = 1 - dt/14;
+    tc.beginPath(); tc.arc(px, py, (ev.ev === 'death' ? 12+dt*3.2 : 8+dt) * s * 1.4, 0, 7);
+    tc.stroke(); tc.globalAlpha = 1;
+    if (ev.ev === 'death' && dt === 14) frameHold = 24;
+  }
+  // HUD
+  tc.fillStyle = css('--text-secondary'); tc.font = '15px -apple-system';
+  const m = replay.meta;
+  tc.fillText(`update ${m.update}   opponent L${m.level}   ${m.outcome.toUpperCase()}`, 16, 24);
+  tc.fillText((frame*3/60).toFixed(1) + ' s', W - 70, 24);
+}
+let frameHold = 0;
+setInterval(() => {
+  if (playing && replay) {
+    if (frameHold > 0) frameHold--;
+    else {
+      frame += +document.getElementById('speed').value;
+      if (frame >= replay.frames.length) frame = 0;   // loop the episode
+    }
+  }
+  drawFrame();
+}, 1000/20);   // replay frames are every 3 physics frames = 20/s
+
+// ---------- chart ---------------------------------------------------------------
+const ch = document.getElementById('chart'), cc = ch.getContext('2d');
+const PADL = 64, PADR = 30, PADT = 26, PADB = 44;
+let pts = [];   // screen-space points for hover
+function drawChart() {
+  const W = ch.width, Hc = ch.height;
+  cc.clearRect(0, 0, W, Hc);
+  if (metrics.length < 1) return;
+  const xmax = Math.max(metrics[metrics.length-1].u, 20);
+  const X = u => PADL + (u / xmax) * (W - PADL - PADR);
+  const Y = v => Hc - PADB - v * (Hc - PADT - PADB);
+  cc.font = '20px -apple-system';
+  // grid + axes (recessive)
+  cc.strokeStyle = css('--grid'); cc.fillStyle = css('--text-muted');
+  cc.lineWidth = 1; cc.textAlign = 'right';
+  for (const v of [0, .25, .5, .75, 1]) {
+    cc.beginPath(); cc.moveTo(PADL, Y(v)); cc.lineTo(W-PADR, Y(v)); cc.stroke();
+    cc.fillText(Math.round(v*100) + '%', PADL - 10, Y(v) + 7);
+  }
+  cc.textAlign = 'center';
+  const step = Math.max(10, Math.ceil(xmax/8/10)*10);
+  for (let u = 0; u <= xmax; u += step) cc.fillText(u, X(u), Hc - PADB + 26);
+  cc.fillText('update', (PADL+W-PADR)/2, Hc - 6);
+  // level-advance markers
+  for (let i = 1; i < metrics.length; i++) {
+    if (metrics[i].lv !== metrics[i-1].lv) {
+      cc.strokeStyle = css('--text-muted'); cc.setLineDash([4, 5]);
+      cc.beginPath(); cc.moveTo(X(metrics[i].u), PADT); cc.lineTo(X(metrics[i].u), Hc-PADB); cc.stroke();
+      cc.setLineDash([]);
+      cc.fillStyle = css('--text-secondary');
+      cc.fillText('L' + metrics[i].lv, X(metrics[i].u), PADT - 6);
+    }
+  }
+  // series (2px lines, direct end labels)
+  pts = [];
+  const series = [['win', css('--series-win')], ['loss', css('--series-loss')], ['draw', css('--series-draw')]];
+  for (const [key, color] of series) {
+    cc.strokeStyle = color; cc.lineWidth = 3; cc.beginPath();
+    metrics.forEach((m, i) => i ? cc.lineTo(X(m.u), Y(m[key])) : cc.moveTo(X(m.u), Y(m[key])));
+    cc.stroke();
+    const last = metrics[metrics.length-1];
+    cc.fillStyle = color; cc.textAlign = 'left';
+    cc.fillText(key, X(last.u) + 8, Y(last[key]) + 6);
+    cc.textAlign = 'center';
+  }
+  metrics.forEach(m => pts.push({x: X(m.u), m}));
+}
+// crosshair + tooltip
+const tip = document.getElementById('tip');
+ch.addEventListener('mousemove', e => {
+  const r = ch.getBoundingClientRect(), sx = ch.width / r.width;
+  const mx = (e.clientX - r.left) * sx;
+  if (!pts.length) return;
+  let best = pts[0];
+  for (const p of pts) if (Math.abs(p.x - mx) < Math.abs(best.x - mx)) best = p;
+  drawChart();
+  cc.strokeStyle = css('--text-muted'); cc.lineWidth = 1;
+  cc.beginPath(); cc.moveTo(best.x, PADT); cc.lineTo(best.x, ch.height - PADB); cc.stroke();
+  tip.style.display = 'block';
+  tip.style.left = Math.min(e.clientX - r.left + 14, r.width - 170) + 'px';
+  tip.style.top = (e.clientY - r.top - 10) + 'px';
+  const m = best.m;
+  tip.innerHTML = `update ${m.u} · vs L${m.lv}<br>` +
+    `win ${(m.win*100).toFixed(0)}% · loss ${(m.loss*100).toFixed(0)}% · draw ${(m.draw*100).toFixed(0)}%`;
+});
+ch.addEventListener('mouseleave', () => { tip.style.display = 'none'; drawChart(); });
+
+poll();
+setInterval(poll, 4000);
+</script>
+</body>
+</html>

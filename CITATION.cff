@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "ml-toys: small runnable machine-learning systems"
+authors:
+  - family-names: Stone
+    given-names: Jeffrey
+license: MIT
+url: "https://jeffrey-stone.com/research/"
+repository-code: "https://github.com/stonej-gh/ml-toys"

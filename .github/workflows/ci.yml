@@ -1,0 +1,66 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python: ["3.11", "3.13"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: pip install -e ".[viz,dev]"
+      - run: pip install torch --index-url https://download.pytorch.org/whl/cpu
+        if: runner.os == 'Linux'
+      - run: pip install torch
+        if: runner.os == 'macOS'
+      - run: python -m pytest tests/ -q
+
+  graders:
+    # Phase 3 gate: every experiment grader, well under the 15-minute budget.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -e ".[viz,dev]"
+      - run: pip install torch --index-url https://download.pytorch.org/whl/cpu
+        if: runner.os == 'Linux'
+      - run: pip install torch
+        if: runner.os == 'macOS'
+      - run: python -m pytest -m grade_cheap -q
+
+  layer0-isolation:
+    # The layering invariant, enforced: Layer 0 must work with the
+    # observability layer (and any future llm/ dir) deleted.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -e ".[dev]"
+      - run: rm -rf viz llm
+      - run: python -m pytest tests/test_physics.py tests/test_determinism.py
+             tests/test_golden_eval.py tests/test_layer0.py -q
+
+  vendor-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sh tools/check_vendor_neutral.sh

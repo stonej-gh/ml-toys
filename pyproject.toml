@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "orbitduel"
+version = "0.0.1"
+description = "A tiny orbital-duel reinforcement-learning environment, with reference agents and a perception sidekick."
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [{ name = "Jeffrey Stone" }]
+requires-python = ">=3.10"
+dependencies = ["numpy>=1.24", "gymnasium>=0.29"]
+
+[project.optional-dependencies]
+train = ["torch>=2.1"]
+viz = ["pillow>=10"]
+spotter = ["torch>=2.1", "pillow>=10", "fastapi", "uvicorn"]
+dev = ["pytest>=7"]
+
+[tool.setuptools.packages.find]
+include = ["orbitduel*", "spotter*"]
+
+[tool.pytest.ini_options]
+# importlib mode lets every experiments/NN-*/grade.py keep the same basename
+addopts = ["--import-mode=importlib"]
+python_files = ["test_*.py", "grade.py"]
+markers = [
+    "grade_cheap: seeded experiment graders (experiments/*/grade.py); the Phase 3 gate is `pytest -m grade_cheap`",
+]
