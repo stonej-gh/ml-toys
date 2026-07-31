@@ -14,9 +14,9 @@ Training directly on the full-frame heatmap against the cell-label grid
 are unchanged.
 
 Run from the repo root:
-    PYTHONPATH=src .venv/bin/python -m spotter.train_heatmap
+    python -m spotter.train_heatmap
 
-Seeded and reproducible from metrics.json. Gates (docs/DESIGN.md): val cell
+Seeded and reproducible from metrics.json. Gates (docs/SPOTTER-DESIGN.md): val cell
 accuracy >= 0.90 overall and per-class recall >= 0.80. Cross-entropy is
 class-weighted (inverse-sqrt frequency) - background cells outnumber laser
 cells ~10^3:1. Best checkpoint + metrics land in runs/m1/ (untracked).

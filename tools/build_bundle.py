@@ -24,15 +24,15 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "deploy"))
-from spotter.quantize import calibrate, quantize  # noqa: E402
-from spotter.render import load_replay_scenes, render  # noqa: E402
+from spotter.quantize import calibrate, quantize                 # noqa: E402
+from spotter.render import load_replay_scenes, render            # noqa: E402
 from spotter_forward import (forward_dense, forward_dense_int8,  # noqa: E402
                              load_doc)
 
 SEED = 20260708
 N_GOLDEN = 8
 FLOAT_SRC = ROOT / "runs/m2/spotter_dense.json"
-REPLAY = ROOT / "assets/replays/seed_005.json"     # fully held-out episode
+REPLAY = ROOT / "assets/replays/seed_005.json"                   # fully held-out episode
 
 
 def main():

@@ -1,44 +1,57 @@
 # ml-toys
 
-Small, complete machine-learning systems built for learning: an orbital-duel
-reinforcement-learning environment with reference agents and every era of
-their training history, and a tiny computer-vision net that learns to see those
-duels from raw pixels, with a portable verification bundle. The environment grew
-out of an iOS arcade game of mine, Spacewar: Orbital Duel; its physics is a twin
-of the game's, and the pilots trained here fly that same game's ships. Everything here is meant to
-be run, retrained, and taken apart. The stories behind these systems are written
-up at [jeffrey-stone.com/research](https://jeffrey-stone.com/research/).
+Small, complete machine-learning systems you can actually run, retrain, and take
+apart. Two of them: an orbital-duel
+[reinforcement-learning](docs/GLOSSARY.md#reinforcement-learning) environment,
+with reference agents and every era of their training history, and a tiny
+[computer-vision](docs/GLOSSARY.md#cnn) net that learns to watch those duels from
+raw pixels. The physics began life in an arcade game of mine; that lineage is
+recorded in [PROVENANCE.md](PROVENANCE.md), and the field itself is
+self-contained, MIT, and yours to experiment in.
+
+> **New to machine learning?** Start with [docs/START-HERE.md](docs/START-HERE.md).
+> It explains what you are looking at, with no jargon and no math, in about five
+> minutes. Already fluent? Skip to [What's in the box](#whats-in-the-box) or the
+> [reward spec](docs/REWARD-SPEC.md).
+
+The longer stories behind these systems are written up at
+[jeffrey-stone.com/research](https://jeffrey-stone.com/research/).
 
 ## Quickstart: the pilot
 
-Requires Python 3.10+. Clone, then:
+**1. Watch the champion beat the top scripted bot.** No install, no compute. The
+curated replays ship in the repo, so all you need is a local web server:
+
+```
+python -m http.server 8000
+# open http://localhost:8000/viz/watch.html
+# defaults to the shipped champion episodes.
+# ?dir=replays/<era> opens another era's gallery (one directory per era
+#   in replays/); ?run=<name> follows replays that a training script is
+#   writing under runs/<name> right now.
+```
+
+That is the whole duel in your browser: a trained net flying against a hand-coded
+opponent. Everything below re-creates and retrains what you just watched.
+
+For the steps that run Python, install the package first (Python 3.10+):
 
 ```
 python -m venv .venv
 .venv/bin/pip install -e ".[train,viz,dev]"
 ```
 
-**1. Watch the champion beat the top scripted bot.** No compute needed; the
-curated replays ship in the repo:
-
-```
-python -m http.server 8000
-# open http://localhost:8000/viz/watch.html
-# (defaults to the shipped champion episodes; ?dir=replays/v3-wallrider etc.
-#  select other eras, ?run=demo follows a live local run)
-```
-
-**2. Re-run that match yourself.** Inference goes through a pure-Python
-reference forward pass (no torch needed), so the outcome is bit-identical on
-any platform:
+**2. Re-run that match yourself.** Play goes through a pure-Python
+[reference forward pass](docs/GLOSSARY.md#train-vs-inference) (no ML
+framework needed), so the outcome is identical on any platform:
 
 ```
 python agents/duel_eval.py
 ```
 
-**3. Watch an agent that learned to cheat.** The wall-riding champion from an
-early era, back in the broken world it exploited, with the counters that
-caught it:
+**3. Watch an agent that learned to cheat.** This is the wall-riding champion
+from an early era, put back in the broken world it exploited, with the counters
+that caught it:
 
 ```
 python agents/duel_eval.py --model agents/models/duel_ppo_v1.json \
@@ -47,11 +60,12 @@ python agents/duel_eval.py --model agents/models/duel_ppo_v1.json \
 ```
 
 The reward specification, and the four exploits that shaped it, are in
-[docs/REWARD-SPEC.md](docs/REWARD-SPEC.md). Read that first if you read one
-thing here.
+[docs/REWARD-SPEC.md](docs/REWARD-SPEC.md). Read that first if you read one thing
+here.
 
-**4. Train a survivor from scratch.** A 5.6k-parameter Double DQN learns to
-rescue a doomed orbit in a few minutes of CPU:
+**4. Train a survivor from scratch.** A 5,126-parameter
+[Double DQN](docs/GLOSSARY.md#double-dqn) learns to rescue a doomed orbit in a
+few minutes of CPU:
 
 ```
 python agents/dqn_survive.py
@@ -61,44 +75,67 @@ python agents/dqn_survive.py
 
 | path | what |
 |---|---|
-| `orbitduel/` | Layer 0: stdlib physics core, `OrbitDuel-v0` Gymnasium env, era rule presets, scripted opponent ladder L1-L10, survive task, dependency-free policy forward |
-| `agents/` | single-file reference trainers (DQN, PPO, league self-play) + `duel_eval.py` + era checkpoints v1-v6 in `agents/models/` |
-| `viz/` | Layer 1: replay schema readers; browser viewer (`watch.html`), video renderer |
-| `replays/` | curated episodes from every era, including the exploits |
-| `experiments/` | graded questions: survive, reward hacking live, forgetting matrix, fuel/laser ablations, spotter port ([index](experiments/README.md)) |
-| `spotter/` | the eye: seeded renderer-labeler, tiny FCN, training, export, int8 quantization |
-| `deploy/` | the spotter's frozen golden bundle: numpy reference forward + seeded vectors + `verify.py` |
+| `orbitduel/` | Layer 0: stdlib physics core, `OrbitDuel-v0` [Gymnasium](docs/GLOSSARY.md#environment) env, era rule presets, scripted opponent ladder L1-L10, survive task, dependency-free policy forward |
+| `agents/` | single-file reference trainers ([DQN](docs/GLOSSARY.md#dqn), [PPO](docs/GLOSSARY.md#ppo), [league self-play](docs/GLOSSARY.md#league)) plus `duel_eval.py` and era checkpoints v1-v6 in `agents/models/` |
+| `viz/` | Layer 1: replay-schema readers, browser viewer (`watch.html`), video renderer |
+| `replays/` | curated era galleries (wall rider, honest era, champion), regenerable via `tools/curate_era_replays.py` |
+| `experiments/` | graded questions: survive, reward hacking, forgetting, fuel and laser ablations, spotter port ([index](experiments/README.md)) |
+| `spotter/` | the eye: seeded renderer-labeler, tiny [segmentation](docs/GLOSSARY.md#segmentation) net, training, export, [int8 quantization](docs/GLOSSARY.md#quantization) |
+| `deploy/` | the spotter's frozen golden bundle: numpy reference forward, seeded vectors, `verify.py` |
 | `demo/` | local web demo running off the frozen bundle |
 | `assets/` | recorded duel traces the renderer-labeler consumes |
-| `docs/` | reward spec, learning notes, spotter design notes |
+| `docs/` | [start-here](docs/START-HERE.md), [glossary](docs/GLOSSARY.md), [reward spec](docs/REWARD-SPEC.md), [learning notes](docs/LEARNING-NOTES.md), [spotter design](docs/SPOTTER-DESIGN.md) |
 | `tests/` | analytic physics checks, bit-exact determinism, golden evals, train smoke, spotter gates |
 
-Layering is a tested invariant: `orbitduel/` imports no viz, no trainers, no
-LLM anything, and the suite proves the core trains with those directories
+Layering is a tested invariant: `orbitduel/` imports no viz, no trainers, and no
+LLM anything, and the suite proves the core still trains with those directories
 deleted.
+
+The two halves meet in one place: the replay JSON. Everything downstream of
+training, the viewer, the video renderer, and the spotter's own training
+data, reads that same archive.
+
+```mermaid
+flowchart LR
+  subgraph pilot["the pilot (RL)"]
+    ENV["orbitduel/<br/>physics + env"] --> TR["agents/<br/>trainers"]
+    TR --> CK["checkpoints<br/>v1 to v6"]
+    TR --> REP["replay JSONs"]
+  end
+  REP --> WATCH["viz/watch.html"]
+  REP --> REN["spotter/render.py<br/>frame + exact mask"]
+  subgraph spotter["the spotter (vision)"]
+    REN --> DS["tools/gen_dataset.py"]
+    DS --> TRN["spotter training<br/>+ export"]
+    TRN --> DEP["deploy/<br/>golden bundle"]
+    DEP --> DEMO["demo/app.py<br/>live overlay"]
+  end
+```
 
 ## Quickstart: the spotter
 
-The perception half: a 28k-parameter segmentation net whose training data
-comes from its own renderer, so every label is free and pixel-perfect. Its
-story: [jeffrey-stone.com/research/spotter](https://jeffrey-stone.com/research/spotter/).
+The perception half is a 28,126-parameter
+[segmentation](docs/GLOSSARY.md#segmentation) net whose training data comes from
+its own renderer, so every label is free and pixel-perfect. Its story:
+[jeffrey-stone.com/research/spotter](https://jeffrey-stone.com/research/spotter/).
 
-**1. Verify the frozen bundle.** Numpy-only, no training, no torch; the
-golden vectors prove the reference forward bit for bit:
+**1. Verify the frozen bundle.** Numpy only, no training, no torch. The
+[golden](docs/GLOSSARY.md#golden-bundle) vectors prove the reference forward
+bit for bit:
 
 ```
 python deploy/verify.py
 ```
 
-**2. See it watch a duel.** Live overlay with a float/int8 A/B toggle,
-running off the frozen bundle:
+**2. See it watch a duel.** A live overlay with a float/int8 A/B toggle, running
+off the frozen bundle:
 
 ```
 python demo/app.py    # http://127.0.0.1:5051
 ```
 
-**3. Retrain it from scratch.** All data is generated in-repo from seeds
-(about 5 minutes end to end on a laptop):
+**3. Retrain it from scratch.** All data is generated in-repo from seeds, about
+five minutes end to end on a laptop:
 
 ```
 python tools/gen_dataset.py
@@ -108,17 +145,17 @@ python tools/build_bundle.py && python deploy/verify.py
 ```
 
 Design notes and the five recorded lessons:
-[docs/SPOTTER-DESIGN.md](docs/SPOTTER-DESIGN.md). The replay traces the
-renderer consumes come from this repo's RL half; the two systems are the two
-halves of one autonomy stack (a policy that decides, perception that sees).
+[docs/SPOTTER-DESIGN.md](docs/SPOTTER-DESIGN.md). The replay traces the renderer
+consumes come from this repo's RL half, so the two systems are the two halves of
+one autonomy stack: a policy that decides, and perception that sees.
 
 ## Experiments
 
-Six packaged questions in [experiments/](experiments/README.md), each a
-README + `run.py`, most with a seeded, thresholded grader. The flagship is
-[02-reward-hacking](experiments/02-reward-hacking/README.md): train a fresh
-agent in the arena's original broken ruleset and watch it discover, within a
-minute of CPU, that riding the free walls beats playing the game.
+Six packaged questions in [experiments/](experiments/README.md), each a README
+plus a `run.py`, most with a seeded, thresholded grader. The friendliest place to
+start is [02-reward-hacking](experiments/02-reward-hacking/README.md): train a
+fresh agent in the arena's original broken ruleset and watch it discover, within
+a minute of CPU, that riding the free walls beats learning to fly.
 
 ```
 python -m pytest -m grade_cheap -q     # run every grader
@@ -130,9 +167,9 @@ python -m pytest -m grade_cheap -q     # run every grader
 .venv/bin/python -m pytest tests/ -q
 ```
 
-Golden evaluations are exact-match, not tolerance-based: the shipped v6
-champion must produce the recorded outcomes on the recorded seeds through
-the reference forward pass on every platform.
+Golden evaluations are exact-match rather than tolerance-based: the shipped v6
+champion must reproduce the recorded outcomes on the recorded seeds, through the
+reference forward pass, on every platform.
 
 ## License and support
 

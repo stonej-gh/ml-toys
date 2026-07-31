@@ -34,19 +34,22 @@ from PIL import Image, ImageDraw, ImageFont
 
 W, H = 1280, 720
 SCALE = H / 768.0
-AGENT, OPP = (57, 135, 229), (217, 89, 38)      # blue learner / orange bot
+AGENT, OPP = (57, 135, 229), (217, 89, 38)  # blue learner / orange bot
 BG = (13, 13, 20)
 TEXT = (235, 235, 228)
 MUTED = (150, 149, 140)
-HOLE_R, SHIP_R, PLAY_W = 68, 27, 16 / 9 * 768
+
+# drawn geometry only: nominal phone-profile field values; ships are drawn as
+# fixed polygons (draw_ship) and the physics never reads these
+HOLE_R, PLAY_W = 68, 16 / 9 * 768
 FPS = 20
 
 
 FONT_CANDIDATES = [
-    "/System/Library/Fonts/Helvetica.ttc",                       # macOS
-    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",           # Debian/Ubuntu
-    "/usr/share/fonts/dejavu/DejaVuSans.ttf",                    # Fedora
-    "C:/Windows/Fonts/arial.ttf",                                # Windows
+    "/System/Library/Fonts/Helvetica.ttc",              # macOS
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",  # Debian/Ubuntu
+    "/usr/share/fonts/dejavu/DejaVuSans.ttf",           # Fedora
+    "C:/Windows/Fonts/arial.ttf",                       # Windows
 ]
 
 
@@ -70,7 +73,7 @@ def draw_ship(d, x, y, hd, color, thrusting):
     px, py = to_px(x, y)
     s = SCALE * 1.4
     pts = [(0, -20), (13, 16), (0, 9), (-13, 16)]
-    cos, sin = math.cos(hd), math.sin(hd)   # canvas y-down: rotate by -hd
+    cos, sin = math.cos(hd), math.sin(hd)  # canvas y-down: rotate by -hd
     rot = [(px + (X * cos + Y * sin) * s, py + (-X * sin + Y * cos) * s)
            for X, Y in pts]
     if thrusting:
@@ -130,10 +133,11 @@ def render_episode(rep):
     for ev in events:
         ev_by_frame.setdefault(ev["f"], []).append(ev)
     out = []
-    flash = []                                   # (frames_left, ship, kind)
+    flash = []  # (frames_left, ship, kind)
     for i, f in enumerate(frames):
         im = BASE.copy()
         d = ImageDraw.Draw(im, "RGBA")
+
         # trails
         for i0, col in [(0, AGENT), (4, OPP)]:
             seg = [to_px(frames[k][i0], frames[k][i0 + 1])
@@ -164,7 +168,7 @@ def render_episode(rep):
                f"{meta['outcome'].upper()}", font=F_SMALL, fill=MUTED)
         d.text((W - 90, 12), f"{i * 3 / 60:5.1f} s", font=F_SMALL, fill=MUTED)
         out.append(im)
-    out.extend([out[-1]] * FPS)                  # 1 s hold on the final frame
+    out.extend([out[-1]] * FPS)  # 1 s hold on the final frame
     return out
 
 
@@ -179,7 +183,7 @@ def pick_highlights(man):
     add(man[0], "first recorded episode")
     add(next((e for e in man if e["outcome"] == "win"), None), "first win")
     for i in range(1, len(man)):
-        if man[i]["level"] != man[i - 1]["level"]:          # graduation eval
+        if man[i]["level"] != man[i - 1]["level"]:  # graduation eval
             grads = [e for e in man if e["update"] == man[i - 1]["update"]]
             best = next((e for e in grads if e["outcome"] == "win"), grads[0])
             add(best, f"graduates L{man[i - 1]['level']}")

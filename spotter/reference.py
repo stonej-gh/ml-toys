@@ -46,7 +46,7 @@ def conv2d(x: np.ndarray, w: np.ndarray, b: np.ndarray,
         x = np.pad(x, ((0, 0), (pad, pad), (pad, pad)))
     k = w.shape[-1]
     win = np.lib.stride_tricks.sliding_window_view(x, (k, k), axis=(1, 2))
-    win = win[:, ::stride, ::stride]                 # [C, H', W', k, k]
+    win = win[:, ::stride, ::stride]  # [C, H', W', k, k]
     out = np.einsum("chwij,ocij->ohw", win, w, optimize=True)
     return out + b[:, None, None]
 
@@ -67,7 +67,7 @@ def trunk_features(x: np.ndarray, doc: dict, all_stages: bool = False):
 
 def forward_patch(x: np.ndarray, doc: dict) -> np.ndarray:
     """One [3,32,32] patch in [0,1] -> [num_classes] logits."""
-    feat = trunk_features(x, doc)                    # [32, 4, 4]
+    feat = trunk_features(x, doc)  # [32, 4, 4]
     pooled = feat.mean(axis=(1, 2))
     return doc["head"]["w"] @ pooled + doc["head"]["b"]
 
@@ -77,7 +77,7 @@ def forward_heatmap(x: np.ndarray, doc: dict) -> np.ndarray:
     feat = trunk_features(x, doc)
     p = doc["head"]["pool"]
     win = np.lib.stride_tricks.sliding_window_view(feat, (p, p), axis=(1, 2))
-    pooled = win.mean(axis=(-1, -2))                 # [32, h, w]
+    pooled = win.mean(axis=(-1, -2))  # [32, h, w]
     hm = np.einsum("chw,oc->ohw", pooled, doc["head"]["w"], optimize=True)
     return hm + doc["head"]["b"][:, None, None]
 

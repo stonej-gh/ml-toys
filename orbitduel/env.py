@@ -66,12 +66,12 @@ def obs_from(arena, idx, fuel=1.0):
     o = arena.ships[1 - idx]
     vc = P.SPAWN_V
     r = s.radius() or 1e-9
-    ux, uy = s.x / r, s.y / r                  # radial unit
-    tx, ty = -uy, ux                           # CCW tangent unit
+    ux, uy = s.x / r, s.y / r                                 # radial unit
+    tx, ty = -uy, ux                                          # CCW tangent unit
     vr = s.vx * ux + s.vy * uy
     vt = s.vx * tx + s.vy * ty
     nx, ny = s.nose()
-    h_rel = math.atan2(tx * ny - ty * nx, tx * nx + ty * ny)   # nose vs CCW tangent
+    h_rel = math.atan2(tx * ny - ty * nx, tx * nx + ty * ny)  # nose vs CCW tangent
     dx, dy = o.x - s.x, o.y - s.y
     dist = math.hypot(dx, dy) or 1e-9
     bear = math.atan2(dy, dx) - math.atan2(ny, nx)
@@ -96,17 +96,16 @@ def obs_from(arena, idx, fuel=1.0):
     return np.asarray(vec, dtype=np.float32)
 
 
-FUEL_BURN = 0.67                   # tank per physics-s lit
-FUEL_REGEN = 0.035                 # tank per physics-s coasting
-FUEL_REARM = 0.10                  # empty tank must regen past this to re-arm
+FUEL_BURN = 0.67    # tank per physics-s lit
+FUEL_REGEN = 0.035  # tank per physics-s coasting
+FUEL_REARM = 0.10   # empty tank must regen past this to re-arm
 
 
 class FuelTank:
-    """The scripted bots' soft-fuel governor as a hard actuator budget: a full
-    tank is ~1.5 physics-s (~3 wall-s) of continuous burn, then thrust is DEAD
-    until the tank regenerates past FUEL_REARM (~3 physics-s of forced coast).
-    This is the burst limit that a per-second reward tax could not express: a
-    long burn-to-hover ambush is impossible, not merely expensive."""
+    """A hard actuator budget: a full tank is ~1.5 physics-s (~3 wall-s) of
+    continuous burn, then thrust is DEAD until the tank regenerates past
+    FUEL_REARM (~3 physics-s of forced coast). The burst limit that a
+    per-second reward tax could not express."""
 
     def __init__(self):
         self.level = 1.0
@@ -129,9 +128,8 @@ class FuelTank:
         return thrust
 
 
-FIRE_REACH = P.LASER_SPEED * P.LASER_TTL * 1.25   # nominal shot reach + margin
-                                                  # (a closing target stays
-                                                  # fair game)
+FIRE_REACH = P.LASER_SPEED * P.LASER_TTL * 1.25  # nominal shot reach + margin
+                                                 # for a closing target
 
 
 def gate_fire(arena, idx, f, cone):
@@ -149,6 +147,7 @@ def gate_fire(arena, idx, f, cone):
         return 0
     if math.hypot(dx, dy) > FIRE_REACH:
         return 0
+
     # hole-in-the-way check on the shot's TRUE path (ship velocity + muzzle
     # along the nose): closed-form nearest approach for straight lasers, a
     # forward-sim under the field when the arena's lasers curve.
@@ -181,7 +180,7 @@ def gate_fire(arena, idx, f, cone):
     return f
 
 
-SHIP_R_GUARD = P.SHIP_R      # conservative muzzle offset for the hole-shot guard
+SHIP_R_GUARD = P.SHIP_R  # conservative muzzle offset for the hole-shot guard
 
 
 # Named era rule-sets (see module docstring). Values are constructor kwargs;
@@ -241,27 +240,27 @@ class OrbitDuelEnv(gym.Env):
         self.max_frames = int(max_wall_seconds * P.FPS)
         self.arena = P.Arena(gravity_on_lasers=gravity_on_lasers,
                              spin_kick=spin_kick, hit_spin=hit_spin)
-        self.hit_reward = hit_reward          # shaping: +/- per hit dealt/taken
-        self.pot_coef = pot_coef              # potential-based distance shaping
-        self.time_cost = time_cost            # per wall-second cost (anti-camping)
-        self.gamma = gamma                    # discount used by the shaping term
+        self.hit_reward = hit_reward    # shaping: +/- per hit dealt/taken
+        self.pot_coef = pot_coef        # potential-based distance shaping
+        self.time_cost = time_cost      # per wall-second cost (anti-camping)
+        self.gamma = gamma              # discount used by the shaping term
         self.fire_cone = math.radians(fire_cone_deg) if fire_cone_deg else None
-        self.thrust_cost = thrust_cost        # per wall-second of burn
+        self.thrust_cost = thrust_cost  # per wall-second of burn
         self.rng = random.Random(seed)
-        self.record = record                  # keep a replay of the episode
+        self.record = record            # keep a replay of the episode
         self.replay = None
-        self.tank = FuelTank()                # ship 0's burst budget
+        self.tank = FuelTank()          # ship 0's burst budget
         self._frames = 0
         self._info = {}
         self.action_space = gym.spaces.Discrete(len(ACTIONS))
         self.observation_space = gym.spaces.Box(-4.0, 4.0, shape=(19,),
                                                 dtype=np.float32)
 
-    # -- observation ------------------------------------------------------------
+    # observation
     def _obs(self):
         return obs_from(self.arena, 0, fuel=self.tank.level)
 
-    # -- gym API ----------------------------------------------------------------
+    # gym API
     def reset(self, *, seed=None, options=None):
         super().reset(seed=seed)
         if seed is not None:
@@ -294,13 +293,14 @@ class OrbitDuelEnv(gym.Env):
 
     def step(self, action):
         t, th, f = ACTIONS[int(action)]
+
         # fire-discipline constraint (shared with any net opponent on the
         # other seat; see gate_fire)
         f = gate_fire(self.arena, 0, f, self.fire_cone)
         if self.fuel:
             th = self.tank.gate(th, frames=self.action_repeat)
-        act0 = (t * P.TURN_RATE, th, f)   # discrete turn -> signed rate
-        act1 = self.opponent(self.arena, 1)   # one opponent decision per block
+        act0 = (t * P.TURN_RATE, th, f)      # discrete turn -> signed rate
+        act1 = self.opponent(self.arena, 1)  # one opponent decision per block
         reward, terminated = 0.0, False
         a0, b0 = self.arena.ships
         d_before = math.hypot(b0.x - a0.x, b0.y - a0.y)
@@ -348,6 +348,7 @@ class OrbitDuelEnv(gym.Env):
                     [[round(lz.x), round(lz.y)] for lz in self.arena.lasers]])
             if terminated:
                 break
+
         # potential-based shaping (gamma*phi(s') - phi(s), phi = -c*dist/h):
         # rewards approach without changing which policy is optimal
         if self.pot_coef and self.arena.ships[1].alive:

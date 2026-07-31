@@ -22,7 +22,7 @@ from .render import H, W
 
 PATCH = 32
 HALF = PATCH // 2
-STRIDE = 8            # trunk downsampling; heatmap cell pitch in input px
+STRIDE = 8  # trunk downsampling; heatmap cell pitch in input px
 
 
 def load_split(path: str | Path):
@@ -49,7 +49,7 @@ def heatmap_labels(masks: np.ndarray) -> np.ndarray:
     labels = np.zeros((len(masks), h, w), dtype=np.int64)
     flame = (tiles == IGNORE).any(axis=(2, 4))
     labels[flame] = IGNORE
-    for c in (4, 2, 1, 3):                    # rarest applied last -> wins
+    for c in (4, 2, 1, 3):  # rarest applied last -> wins
         labels[(tiles == c).any(axis=(2, 4))] = c
     return labels
 

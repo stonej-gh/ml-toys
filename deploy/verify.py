@@ -8,7 +8,7 @@
 
     python verify.py            # from anywhere; paths resolve to this file
 
-Checks, in ladder order (docs/DESIGN.md in the source repo):
+Checks, in ladder order (docs/SPOTTER-DESIGN.md in the source repo):
   1. FLOAT : recomputed logits match golden subgrid within TOL (1e-4, frozen
              after measurement); per-pixel argmax matches stored 100%
   2. INT8  : recomputed integer path matches stored argmax BIT-EXACTLY;
@@ -71,6 +71,7 @@ def main() -> int:
     print(f"int8  : argmax agreement vs float {agree_min:.5f} "
           f"(gate {GATE_AGREE})  {'OK' if agree_min >= GATE_AGREE else 'FAIL'}")
     ok &= agree_min >= GATE_AGREE
+
     # standard dataset-aggregated IoU: sum(inter)/sum(union) over the set
     for c, name in enumerate(meta["classes"]):
         v = inter[c] / union[c] if union[c] else 1.0

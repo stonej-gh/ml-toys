@@ -26,7 +26,7 @@ def run():
     # Euler is symplectic - r wobbles ~1% around a discrete invariant circle
     # (typical 2D physics engines behave the same), but the mean radius must not walk.
     arena = P.Arena().reset()
-    period = 2 * math.pi * P.SPAWN_R / P.SPAWN_V          # physics s (Kepler, a=r)
+    period = 2 * math.pi * P.SPAWN_R / P.SPAWN_V  # physics s (Kepler, a=r)
     frames_per_orbit = int(period / P.DT)
     orbit_mean_r = []
     for _ in range(10):
@@ -63,7 +63,7 @@ def run():
     # 3. energy conservation on an eccentric coast (no thrust, no walls hit)
     arena = P.Arena().reset()
     s = arena.ships[0]
-    s.vy *= 0.9                                            # ellipse inside the spawn circle
+    s.vy *= 0.9  # ellipse inside the spawn circle
     def energy(s):
         return 0.5 * s.speed() ** 2 - P.GM / s.radius()
     e0 = energy(s)
@@ -76,7 +76,7 @@ def run():
     # 4. a hard retrograde burn deorbits into the hole
     arena = P.Arena().reset()
     s = arena.ships[0]
-    s.heading = math.pi                                    # nose -y = retrograde at spawn
+    s.heading = math.pi  # nose -y = retrograde at spawn
     died = None
     for _ in range(int(60 / P.DT)):
         for ev in arena.step(((0, 1, 0), (0, 0, 0))):
@@ -86,13 +86,16 @@ def run():
             break
     check("retrograde burn falls into the hole", died == 'blackhole', f"cause={died}")
 
-    # 5. lasers: a broadside shot crosses the field and expires (TTL x speed sanity)
+    # 5. lasers: at spawn the nose points prograde, so the muzzle kick and the
+    # ship's orbital velocity add head-to-tail: |v| = SPAWN_V + LASER_SPEED
+    # (the one frame of gravity applied before we measure bends that < 1 pt/s)
     arena = P.Arena().reset()
     arena.ships[0].cooldown = 0.0
     arena.step(((0, 0, 1), (0, 0, 0)))
+    spd = math.hypot(arena.lasers[0].vx, arena.lasers[0].vy) if arena.lasers else 0.0
     check("laser spawns with muzzle + ship velocity", len(arena.lasers) == 1
-          and abs(math.hypot(arena.lasers[0].vx, arena.lasers[0].vy)
-                  - math.hypot(0, P.SPAWN_V + 0) - 0) > 0, "spawned")
+          and abs(spd - (P.SPAWN_V + P.LASER_SPEED)) < 1.0,
+          f"|v| {spd:.1f} vs SPAWN_V + LASER_SPEED = {P.SPAWN_V + P.LASER_SPEED:.1f} pt/s")
     rng = P.LASER_SPEED * P.LASER_TTL
     check("laser range covers a duel gap", rng > P.SPAWN_R,
           f"range {rng:.0f} pt vs spawn radius {P.SPAWN_R:.0f} pt")

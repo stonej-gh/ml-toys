@@ -24,10 +24,10 @@ sys.path.insert(0, str(REPO))
 sys.path.insert(0, str(REPO / "deploy"))
 
 SEED = 20260710
-TRAIN_N, VAL_N = 64, 16      # 64 random + replay mix -> 85 frames total
+TRAIN_N, VAL_N = 64, 16  # 64 random + replay mix -> 85 frames total
 EPOCHS = 12
 DATASET_SHA = "7b8260189ec9e86f1616820ec59a66dbf835f2b619d99b3b11fe223f1edf114e"
-IOU_FLOOR = 0.15             # every foreground class; reference worst 0.447
+IOU_FLOOR = 0.15         # every foreground class; reference worst 0.447
 FLOAT_AGREE = 0.9999
 INT8_AGREE = 0.98
 
@@ -110,7 +110,7 @@ def test_micro_retrain_learns_every_class(flow):
                 union[c] += (p | t).sum()
     iou = inter / np.maximum(union, 1)
     print("\nval IoU:", {c: round(float(v), 3) for c, v in zip(CLASSES, iou)})
-    for c, v in list(zip(CLASSES, iou))[1:]:          # foreground classes
+    for c, v in list(zip(CLASSES, iou))[1:]:  # foreground classes
         assert v >= IOU_FLOOR, f"{c} IoU {v:.3f} < {IOU_FLOOR}"
 
 

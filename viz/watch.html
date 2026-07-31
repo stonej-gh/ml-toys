@@ -48,7 +48,7 @@
 <body>
 <div class="wrap">
   <h1>OrbitDuel: the bot learns to duel</h1>
-  <div class="sub">PPO vs the scripted pilot ladder · every eval episode is archived; scrub anywhere, any time · <span id="status">loading…</span></div>
+  <div class="sub"><span id="source">loading source…</span> · every eval episode is archived; scrub anywhere, any time · <span id="status">loading…</span></div>
 
   <div class="tiles">
     <div class="tile"><div class="k" id="t-upd">–</div><div class="l">update</div></div>
@@ -62,6 +62,7 @@
     <button id="play">⏸ pause</button>
     <label>speed <select id="speed"><option>1</option><option selected>2</option><option>4</option><option>8</option></select>×</label>
     <label>episode <select id="pick"></select></label>
+    <label>era <select id="era"></select></label>
     <label><input type="checkbox" id="follow" checked> follow latest</label>
     <span id="epmeta" style="color:var(--text-muted)"></span>
   </div>
@@ -87,6 +88,29 @@ const Q = new URLSearchParams(location.search);
 const RUN = Q.get('run');
 const BASE = Q.get('dir') ? '../' + Q.get('dir')
            : RUN ? `../runs/${RUN}` : '../replays/v6-final';
+
+// name the source in the header, and offer the curated era galleries as a
+// picker so nobody has to hand-edit the URL (the story behind each era is
+// docs/REWARD-SPEC.md)
+const ERAS = ['v3-wallrider', 'v4-honest', 'v6-final'];
+const DIR = Q.get('dir');
+document.getElementById('source').textContent =
+  DIR ? `curated gallery ${DIR} (story: docs/REWARD-SPEC.md)`
+      : RUN ? `live local run runs/${RUN}`
+            : 'shipped champion episodes (replays/v6-final)';
+{
+  const era = document.getElementById('era');
+  for (const name of ['(current view)', ...ERAS]) {
+    const o = document.createElement('option');
+    o.value = name; o.textContent = name;
+    era.appendChild(o);
+  }
+  if (DIR && DIR.startsWith('replays/')) era.value = DIR.slice(8);
+  era.onchange = e => {
+    if (e.target.value !== '(current view)')
+      location.search = '?dir=replays/' + e.target.value;
+  };
+}
 
 // ---------- data polling -------------------------------------------------------
 let manifest = [], metrics = [], curFile = null, replay = null, frame = 0;
@@ -136,7 +160,8 @@ async function loadReplay(file) {
   frame = 0;
   const m = replay.meta;
   document.getElementById('epmeta').textContent =
-    `update ${m.update} · L${m.level} · ${m.outcome} · ${m.wall_s}s`;
+    `update ${m.update} · L${m.level} · ${m.outcome} · ${m.wall_s}s` +
+    (m.walls === undefined ? '' : ` · walls ${m.walls}`);
   document.getElementById('pick').value = file;
 }
 function refreshPicker() {

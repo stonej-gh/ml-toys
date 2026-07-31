@@ -17,12 +17,12 @@ import numpy as np
 import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from spotter.export import export_dense, export_patch  # noqa: E402
-from spotter.model import SpotterNet  # noqa: E402
+from spotter.export import export_dense, export_patch           # noqa: E402
+from spotter.model import SpotterNet                            # noqa: E402
 from spotter.reference import (forward_dense, forward_heatmap,  # noqa: E402
                                forward_patch, load_doc)
-from spotter.render import render  # noqa: E402
-from spotter.sample import sample_scene  # noqa: E402
+from spotter.render import render                               # noqa: E402
+from spotter.sample import sample_scene                         # noqa: E402
 
 # fp32 numpy and torch sum in different orders; observed max |delta| is ~1e-6
 # on logits of order 1. Threshold frozen two decades above that observation.
@@ -33,7 +33,7 @@ def _fresh_model():
     torch.manual_seed(1234)
     m = SpotterNet(mode="patch")
     m.train()
-    for _ in range(3):                      # move BN stats off their defaults
+    for _ in range(3):  # move BN stats off their defaults
         m(torch.randn(8, 3, 32, 32))
     return m.eval()
 
@@ -53,7 +53,7 @@ def test_patch_logits_match(tmp_path):
         want = m(torch.from_numpy(x)).numpy()
     got = np.stack([forward_patch(p, doc) for p in x])
     assert np.abs(got - want).max() < ATOL
-    assert (got.argmax(1) == want.argmax(1)).all()   # 100% argmax agreement
+    assert (got.argmax(1) == want.argmax(1)).all()  # 100% argmax agreement
 
 
 def test_dense_matches_on_real_frame(tmp_path):

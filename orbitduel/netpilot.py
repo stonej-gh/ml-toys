@@ -5,9 +5,9 @@
 # Attribution appreciated; see LICENSE for details.
 """Dependency-free forward pass for exported policy nets (the .json bundles).
 
-The trainers export policies as plain weight arrays (agents/ppo_duel.py
-export_json): row-major W and b per Linear layer, tanh or relu trunk, argmax
-head, plus the flattened action table. This module re-implements inference in
+The trainers export policies as plain weight arrays (export_json in
+agents/ppo_duel.py and agents/dqn_survive.py): row-major W and b per Linear
+layer, tanh or relu trunk, argmax head, plus the flattened action table. This module re-implements inference in
 pure Python floats so that:
 
   * golden evaluations are bit-identical on every platform (no BLAS, no
@@ -54,7 +54,7 @@ class PolicyNet:
 
     def logits(self, obs):
         x = [float(v) for v in obs]
-        if len(x) < self.obs_dim:          # older 18-input exports: pad fuel=1
+        if len(x) < self.obs_dim:  # older 18-input exports: pad fuel=1
             x = x + [1.0] * (self.obs_dim - len(x))
         return _forward(self.layers, self.activation, x[:self.obs_dim])
 

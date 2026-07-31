@@ -44,21 +44,21 @@ from PIL import Image, ImageDraw
 
 from . import IGNORE
 
-# --- world constants (physics twin, gameScale 1) --------------------------------
+# world constants (physics twin, gameScale 1)
 FIELD_H = 768.0
-PLAY_W = 16.0 / 9.0 * FIELD_H          # 1365.33
-HOLE_R = 68.0                          # event-horizon radius (pt)
-SHIP_R = 27.0                          # ship physics circle (pt)
-LASER_R = 4.0                          # physics radius (pt); drawn stylized
+PLAY_W = 16.0 / 9.0 * FIELD_H                  # 1365.33
+HOLE_R = 68.0                                  # event-horizon radius (pt)
+SHIP_R = 27.0                                  # nominal hull radius; spawn keep-out only (sample.py), hulls draw as polygons
+LASER_R = 4.0                                  # physics radius (pt); drawn stylized
 
-# --- canvas ----------------------------------------------------------------------
-W, H = 320, 192                        # model input size; both divisible by 8
-SCALE = W / PLAY_W                     # = 15/64 = 0.234375 exactly
-FIELD_H_PX = FIELD_H * SCALE           # 180; (H - 180)/2 = 6-px letterbox bars
+# canvas
+W, H = 320, 192                                # model input size; both divisible by 8
+SCALE = W / PLAY_W                             # = 15/64 = 0.234375 exactly
+FIELD_H_PX = FIELD_H * SCALE                   # 180; (H - 180)/2 = 6-px letterbox bars
 
-# --- frame colors (game look) ------------------------------------------------
+# frame colors (game look)
 BG = (13, 13, 20)
-SHIP_COLORS = [(57, 135, 229), (217, 89, 38)]   # ship0 blue, ship1 orange
+SHIP_COLORS = [(57, 135, 229), (217, 89, 38)]  # ship0 blue, ship1 orange
 FLAME = (255, 210, 122)
 LASER_COLOR = (255, 255, 255)
 BORDER = (46, 46, 58)
@@ -75,16 +75,16 @@ HULLS = [
     [(0, 22), (7, 11), (11, 1), (22, -7), (13, -9), (9, -17),
      (3, -13), (-3, -13), (-9, -17), (-13, -9), (-22, -7), (-11, 1), (-7, 11)],
 ]
-FLAME_PTS = [(-5, -18), (0, -34), (5, -18)]      # tail exhaust triangle
+FLAME_PTS = [(-5, -18), (0, -34), (5, -18)]  # tail exhaust triangle
 
-LASER_PX = 1.5                          # half-size of the drawn laser square
+LASER_PX = 1.5                               # half-size of the drawn laser square
 
 
 @dataclass
 class ShipState:
     x: float = 0.0
     y: float = 0.0
-    heading: float = 0.0      # rad, 0 = nose +y
+    heading: float = 0.0  # rad, 0 = nose +y
     alive: bool = True
     thrusting: bool = False
 
@@ -93,8 +93,8 @@ class ShipState:
 class Scene:
     """Everything the renderer needs for one frame. Class ids: ship i -> i+1."""
     ships: list = field(default_factory=lambda: [ShipState(), ShipState()])
-    lasers: list = field(default_factory=list)   # [(x, y), ...] world pt
-    star_seed: int = 7                           # background clutter variant
+    lasers: list = field(default_factory=list)  # [(x, y), ...] world pt
+    star_seed: int = 7                          # background clutter variant
 
 
 def to_px(x: float, y: float) -> tuple[float, float]:
@@ -108,7 +108,7 @@ def _hull_px(pts, x, y, heading, scale=HULL_SCALE):
     c, s = math.cos(heading), math.sin(heading)
     out = []
     for dx, dy in pts:
-        wx = (dx * c - dy * s) * scale        # CCW rotation in world coords
+        wx = (dx * c - dy * s) * scale  # CCW rotation in world coords
         wy = (dx * s + dy * c) * scale
         out.append((px + wx * SCALE, py - wy * SCALE))
     return out
@@ -179,7 +179,7 @@ def overlay(frame: Image.Image, mask: Image.Image, alpha: int = 110) -> Image.Im
     return out.convert("RGB")
 
 
-# --- replay traces ----------------------------------------------------------------
+# replay traces
 # Recorded league self-play episodes (assets/replays/*.json). Frame schema is a
 # flat list per (every-3rd-physics) frame:
 #   [ax, ay, ahead, aalive, bx, by, bhead, balive, athrust, bthrust, [[lx,ly],..]]

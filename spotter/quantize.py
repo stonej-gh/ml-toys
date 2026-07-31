@@ -25,7 +25,7 @@ the numpy reference (deploy/spotter_forward.py) applies them exactly as
 written, so its integer outputs are bit-reproducible.
 
 Run (after training M2):
-    PYTHONPATH=src .venv/bin/python -m spotter.quantize \
+    python -m spotter.quantize \
         --float runs/m2/spotter_dense.json --out runs/m2/spotter_dense_int8.json
 """
 
@@ -39,7 +39,7 @@ import numpy as np
 
 from .reference import conv2d, load_doc
 
-PCT = 100.0        # activation calibration percentile (max: percentile clipping saturated exactly the rare bright laser activations)
+PCT = 100.0  # activation calibration percentile (max: percentile clipping saturated exactly the rare bright laser activations)
 QMAX = 127
 
 

@@ -26,13 +26,13 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from spotter.render import Scene, load_replay_scenes, render  # noqa: E402
-from spotter.sample import sample_scene  # noqa: E402
+from spotter.sample import sample_scene                       # noqa: E402
 
 # Disjoint seed blocks per split - the reproducibility contract.
 SEED_BASE = {"train": 1_000_000, "val": 2_000_000, "test": 3_000_000}
 REPLAYS = {
     "train": ["seed_000.json", "seed_002.json"],
-    "test": ["seed_005.json"],          # held-out episode, never trained on
+    "test": ["seed_005.json"],                                # held-out episode, never trained on
 }
 
 
@@ -51,6 +51,7 @@ def build_split(name, n_random, replay_frac, assets, rng):
         idx = rng.choice(len(pool), size=min(n_replay, len(pool)), replace=False)
         for i in sorted(idx):
             sc, src = pool[i]
+
             # replays carry no star_seed; vary it so clutter isn't episode-constant
             sc.star_seed = int(rng.integers(1 << 31))
             scenes.append(sc)

@@ -21,8 +21,9 @@ compact 8-float survival state (all roughly unit-scale):
     2  tangential velocity / vc      6  edge clearance / h
     3  sin(heading - CCW tangent)    7  speed / local circular speed
 
-Reward: +1 per WALL second alive (paid per step), -10 on death. Episodes
-truncate (success) at `max_wall_seconds`.
+Reward: +1 per WALL second alive (paid per step), -`wall_penalty` (default
+8.0) per wall strike, -10 on death. Episodes truncate (success) at
+`max_wall_seconds`.
 """
 
 import math
@@ -41,7 +42,7 @@ class SurviveEnv:
         self.action_repeat = action_repeat
         self.max_frames = int(max_wall_seconds * P.FPS)
         self.rng = random.Random(seed)
-        self.wall_penalty = wall_penalty      # ~0.8x the death penalty per strike
+        self.wall_penalty = wall_penalty  # ~0.8x the death penalty per strike
         self.arena = P.Arena()
         self._frames = 0
 
@@ -65,7 +66,7 @@ class SurviveEnv:
             self.rng.seed(seed)
         self.arena.reset()
         s = self.arena.ships[0]
-        self.arena.ships[1].alive = False          # no opponent in T0
+        self.arena.ships[1].alive = False  # no opponent in T0
         rng = self.rng
         r0 = rng.uniform(KILL_R + 40.0, P.H / 2 - P.SHIP_R - 20.0)
         ang = rng.uniform(0, 2 * math.pi)
@@ -74,7 +75,7 @@ class SurviveEnv:
         vr = vc * rng.uniform(-0.30, 0.30)
         ux, uy = math.cos(ang), math.sin(ang)
         s.x, s.y = r0 * ux, r0 * uy
-        s.vx = vr * ux - vt * uy                   # radial + CCW-tangential parts
+        s.vx = vr * ux - vt * uy  # radial + CCW-tangential parts
         s.vy = vr * uy + vt * ux
         s.heading = rng.uniform(0, 2 * math.pi)
         self._frames = 0
@@ -86,7 +87,7 @@ class SurviveEnv:
         for _ in range(self.action_repeat):
             events = self.arena.step(((turn * P.TURN_RATE, thrust, 0), (0, 0, 0)))
             self._frames += 1
-            reward += 1.0 / P.FPS                  # +1 per wall second alive
+            reward += 1.0 / P.FPS  # +1 per wall second alive
             reward -= self.wall_penalty * sum(
                 1 for ev in events if ev[0] == 'wall' and ev[1] == 0)
             if any(ev[0] == 'death' and ev[1] == 0 for ev in events):

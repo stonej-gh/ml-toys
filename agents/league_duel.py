@@ -15,7 +15,7 @@ for curriculum forgetting (same reason OpenAI Five / AlphaStar used leagues):
   scripted level (prioritized toward the ones the agent is losing to, with a
   floor so nothing is forgotten), else a uniform pool snapshot.
 - Net opponents fly ship 1 through the same 19-float observation (mirrored
-  seat) and the same fire cone (symmetric rules,, no seat advantage.
+  seat) and the same fire cone (symmetric rules, no seat advantage).
 - Eval is a fixed scripted panel (L1/L4/L7/L10, greedy, fixed seeds); the
   dashboard metric "win" is the panel mean, so climbing is measurable against
   a yardstick that never moves. league.csv holds the per-level detail.
@@ -41,18 +41,18 @@ from orbitduel import physics as P
 import agents.ppo_duel as M3
 from agents.ppo_duel import ActorCritic, export_json
 
-# --- league hyperparameters (PPO core inherits M3's) ----------------------------
-TOTAL_UPDATES = 20_000       # ~4x the M3 budget
+# league hyperparameters (PPO core inherits M3's)
+TOTAL_UPDATES = 20_000  # ~4x the M3 budget
 N_ENV = 8
 T_ROLL = 256
-SNAP_EVERY = 500             # updates between self-snapshots joining the pool
-POOL_MAX = 12                # snapshots kept (evenly thinned when over)
-SCRIPTED_MIX = 0.6           # P(scripted opponent); else a pool snapshot
-PRIORITY_FLOOR = 0.1         # min sampling weight per scripted level
+SNAP_EVERY = 500        # updates between self-snapshots joining the pool
+POOL_MAX = 12           # snapshots kept (evenly thinned when over)
+SCRIPTED_MIX = 0.6      # P(scripted opponent); else a pool snapshot
+PRIORITY_FLOOR = 0.1    # min sampling weight per scripted level
 EVAL_EVERY = 100
 EVAL_PANEL = (1, 4, 7, 10)
-EVAL_EPISODES = 24           # per panel level
-RECORD_EPISODES = 1          # replays persisted per panel level per eval
+EVAL_EPISODES = 24      # per panel level
+RECORD_EPISODES = 1     # replays persisted per panel level per eval
 ENT_START, ENT_END = 0.02, 0.005
 
 
@@ -64,7 +64,7 @@ class NetOpponent:
         self.net.load_state_dict(state_dict)
         self.net.eval()
         self.fire_cone = fire_cone
-        self.tank = FuelTank()               # symmetric rules: same burst budget
+        self.tank = FuelTank()  # symmetric rules: same burst budget
 
     def __call__(self, arena, idx):
         with torch.no_grad():
@@ -72,13 +72,14 @@ class NetOpponent:
                 obs_from(arena, idx, fuel=self.tank.level)).float().unsqueeze(0))
         t, th, f = ACTIONS[int(logits.argmax())]
         f = gate_fire(arena, idx, f, self.fire_cone)
-        th = self.tank.gate(th, frames=4)    # opponent decides per 4-frame block
+        th = self.tank.gate(th, frames=4)  # opponent decides per 4-frame block
         return (t * P.TURN_RATE, th, f)
 
 
 def make_env(opponent, seed, record=False):
-    # gravity_on_lasers: the original game's shots curve under the field -
-    # straight-laser training taught v4 an aim model that visibly missed there
+    # gravity_on_lasers: the agent's own shots curve under the field like
+    # everything else - straight-laser eras taught v4 an aim model fitted to
+    # the wrong ballistics (LEARNING-NOTES Stage 5, experiment 05)
     env = OrbitDuelEnv(opponent=opponent, hit_reward=M3.HIT_R, rules=None,
                           gravity_on_lasers=True,
                           spawn_jitter=M3.SPAWN_JITTER,
@@ -96,8 +97,8 @@ class League:
     def __init__(self, fire_cone, seed=0):
         self.fire_cone = fire_cone
         self.rng = random.Random(seed)
-        self.snapshots = []                      # state_dicts (frozen selves)
-        self.win_ema = {lv: 0.0 for lv in range(1, 11)}   # vs scripted levels
+        self.snapshots = []                              # state_dicts (frozen selves)
+        self.win_ema = {lv: 0.0 for lv in range(1, 11)}  # vs scripted levels
 
     def add_snapshot(self, net):
         self.snapshots.append(copy.deepcopy(net.state_dict()))
@@ -173,17 +174,18 @@ def train():
     torch.manual_seed(0)
     random.seed(0)
     net = ActorCritic()
+
     # fresh start: the pre-thrust-cost checkpoints embody the power-hover
     # habit this run exists to price out - no warm start
     opt = torch.optim.Adam(net.parameters(), lr=M3.LR)
-    league = League(fire_cone=None, seed=0)      # cone radians set per-env below
+    league = League(fire_cone=None, seed=0)  # cone radians set per-env below
     league.fire_cone = make_env(ScriptedPilot(1, 0), 0).fire_cone
     league.add_snapshot(net)
 
     def fresh_env(i):
         opp, lv = league.sample_opponent(seed=random.randrange(1 << 30))
         env = make_env(opp, seed=random.randrange(1 << 30))
-        env._league_level = lv                   # 0 = self-play snapshot
+        env._league_level = lv  # 0 = self-play snapshot
         return env
 
     envs = [fresh_env(i) for i in range(N_ENV)]
@@ -226,7 +228,7 @@ def train():
                 if term or trunc:
                     if env._league_level > 0 and term:
                         league.note_result(env._league_level, r > 0)
-                    envs[i] = fresh_env(i)       # new opponent every episode
+                    envs[i] = fresh_env(i)  # new opponent every episode
                     o2, _ = envs[i].reset()
                 obs[i] = o2
         with torch.no_grad():

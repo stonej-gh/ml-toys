@@ -50,6 +50,7 @@ def test_rule_presets_apply():
     assert free.fuel is False and free.spawn_phase is False
     full = OrbitDuelEnv(rules="v6-full")
     assert full.arena.gravity_on_lasers is True and full.fuel is True
+
     # explicit kwargs beat the preset
     override = OrbitDuelEnv(rules="v6-full", gravity_on_lasers=False)
     assert override.arena.gravity_on_lasers is False

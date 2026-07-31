@@ -15,7 +15,7 @@ numpy reference in reference.py) can consume:
                "w": [out][in][3][3], "b": [out]}, ...],
    "head":   {"pool": 4, "w": [classes][32], "b": [classes]}}
 
-Run:  PYTHONPATH=src .venv/bin/python -m spotter.export \
+Run:  python -m spotter.export \
           --ckpt runs/m1/best.pt --out runs/m1/spotter_patch.json
 """
 
@@ -49,7 +49,7 @@ def _folded(layer) -> dict:
 
 def export_patch(model: SpotterNet, path: str | Path) -> dict:
     model.eval()
-    hw = model.head.classifier.weight[:, :, 0, 0]      # 1x1 conv -> matrix
+    hw = model.head.classifier.weight[:, :, 0, 0]  # 1x1 conv -> matrix
     doc = {"model": "spotter_patch", "classes": CLASSES,
            "input": "rgb/255 CHW",
            "trunk": [_folded(l) for l in model.trunk.layers],
@@ -89,6 +89,7 @@ def main():
     ap.add_argument("--ckpt", default=None)
     ap.add_argument("--out", default=None)
     args = ap.parse_args()
+
     # defaults follow the mode, so the README flow needs no explicit paths
     if args.ckpt is None:
         args.ckpt = "runs/m2/best.pt" if args.mode == "dense" else "runs/m1/best.pt"

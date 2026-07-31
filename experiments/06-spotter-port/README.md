@@ -1,5 +1,9 @@
 # Experiment 06, the spotter: retrain from nothing, port to nothing
 
+*Level: intermediate, vision side. In plain English: could a stranger with
+none of our files rebuild the seeing net from scratch and prove, at every
+step, that their copy is right?*
+
 **Question.** The spotter ships as a frozen golden bundle
 ([deploy/](../../deploy)): folded-JSON weights, golden vectors, and a
 numpy-only verifier. Can a stranger (a) regenerate the dataset bit-for-bit,
@@ -60,3 +64,11 @@ artifacts are bit-reproducible and which are gate-reproducible.
 ```
 python -m pytest experiments/06-spotter-port/grade.py -m grade_cheap -q
 ```
+
+## Shrink it
+
+The whole channel budget is one constant: `WIDTHS` in
+[spotter/model.py](../../spotter/model.py). Shrink it, retrain, and rerun
+the grader to find the smallest trunk that still passes every gate; watch
+which gate fails first and which class it fails on. That curve, capacity vs
+the gates, is the sizing methodology in miniature.

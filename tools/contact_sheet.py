@@ -22,7 +22,7 @@ from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from spotter.render import load_replay_scenes, overlay, render  # noqa: E402
-from spotter.sample import sample_scene  # noqa: E402
+from spotter.sample import sample_scene                         # noqa: E402
 
 PAD = 4
 

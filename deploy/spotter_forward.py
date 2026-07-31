@@ -71,7 +71,7 @@ def _requant(acc, bq, m, relu):
     return np.clip(q, lo, QMAX).astype(np.int8)
 
 
-# --- float model -----------------------------------------------------------------
+# float model
 def _trunk(x, doc, all_stages=False):
     feats = []
     for layer in doc["trunk"]:
@@ -102,7 +102,7 @@ def forward_dense(x: np.ndarray, doc: dict) -> np.ndarray:
     return seg + doc["seg"]["b"][:, None, None]
 
 
-# --- int8 model --------------------------------------------------------------------
+# int8 model
 def forward_dense_int8(x: np.ndarray, doc8: dict):
     """[3,H,W] float in [0,1] -> (float logits [num_classes,H,W], argmax).
 

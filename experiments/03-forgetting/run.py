@@ -33,16 +33,22 @@ CHECKPOINTS = [
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--episodes", type=int, default=12)
+    ap.add_argument("--model", help="add your own exported .json to the matrix")
+    ap.add_argument("--rules", default="v6-full", help="era preset for --model")
     args = ap.parse_args()
+
+    rows = [(X.MODELS / model, rules) for model, rules in CHECKPOINTS]
+    if args.model:
+        rows.append((Path(args.model), args.rules))
 
     header = "".join(f"  L{lv:<2}" for lv in PANEL)
     print(f"{'checkpoint':28s} {'era':12s}{header}   (wins/{args.episodes})")
-    for model, rules in CHECKPOINTS:
+    for path, rules in rows:
         cells = []
         for level in PANEL:
-            st = X.duel_stats(X.MODELS / model, level, args.episodes, rules)
+            st = X.duel_stats(path, level, args.episodes, rules)
             cells.append(f"{X.wins(st):3d} ")
-        print(f"{model:28s} {rules:12s}{''.join(cells)}")
+        print(f"{path.name:28s} {rules:12s}{''.join(cells)}")
     return 0
 
 

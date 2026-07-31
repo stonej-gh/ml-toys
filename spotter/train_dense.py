@@ -11,9 +11,9 @@ seeded STRESS variant of the test split (stronger noise/jitter) is evaluated
 alongside clean splits so robustness is measured, not assumed.
 
 Run from the repo root:
-    PYTHONPATH=src .venv/bin/python -m spotter.train_dense
+    python -m spotter.train_dense
 
-Gates (docs/DESIGN.md): per-class IoU >= 0.70 on val, >= 0.60 on the fully
+Gates (docs/SPOTTER-DESIGN.md): per-class IoU >= 0.70 on val, >= 0.60 on the fully
 held-out replay episode, >= 0.50 on the stress set. Artifacts in runs/m2/.
 """
 

@@ -21,5 +21,5 @@ __all__ = ["physics", "Arena", "Ship", "Laser", "__version__"]
 try:
     import gymnasium as _gym
     _gym.register(id="OrbitDuel-v0", entry_point="orbitduel.env:OrbitDuelEnv")
-except ImportError:                      # physics core stays usable without gym
+except ImportError:  # physics core stays usable without gym
     pass

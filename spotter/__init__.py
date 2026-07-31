@@ -21,12 +21,12 @@ IGNORE = 255
 
 # Overlay palette (RGB) - shared by review renders and the demo overlay so the
 # viewer's eye calibrates once. Neon variants of each entity's game color;
-# hole gets magenta (its in-game glow is cyan, so the overlay must differ).
+# hole gets magenta (its rendered glow is cyan, so the overlay must differ).
 PALETTE = {
-    0: (0, 0, 0),          # background - rendered transparent in overlays
-    1: (60, 170, 255),     # interceptor - neon blue
-    2: (255, 130, 40),     # fighter - neon orange
-    3: (255, 255, 60),     # laser - neon yellow
-    4: (255, 60, 220),     # hole - neon magenta
-    IGNORE: (0, 0, 0),     # ignore (flames) - transparent in overlays
+    0: (0, 0, 0),       # background - rendered transparent in overlays
+    1: (60, 170, 255),  # interceptor - neon blue
+    2: (255, 130, 40),  # fighter - neon orange
+    3: (255, 255, 60),  # laser - neon yellow
+    4: (255, 60, 220),  # hole - neon magenta
+    IGNORE: (0, 0, 0),  # ignore (flames) - transparent in overlays
 }

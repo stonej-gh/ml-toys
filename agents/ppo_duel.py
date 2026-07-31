@@ -13,7 +13,7 @@ entropy bonus: every moving part visible.
 Curriculum: train vs ScriptedPilot(level) starting at L1; when the greedy
 policy's eval win rate crosses ADVANCE_WIN, move up a level (fresh optimizer
 momentum, same weights). Rewards: +/-1 on win/loss plus +/-HIT_R per hit
-dealt/taken (the game itself scores per hit, so this is game-shaped, not
+dealt/taken (the duel itself scores per hit, so this is score-shaped, not
 hand-authored strategy).
 
 The experiment is DOCUMENTED as it runs (see viz/):
@@ -42,9 +42,9 @@ from orbitduel.pilot import ScriptedPilot
 
 OBS_DIM, N_ACT = 19, len(ACTIONS)
 
-# --- hyperparameters -----------------------------------------------------------
+# hyperparameters
 N_ENV = 8
-T_ROLL = 256                 # steps per env per update -> 2048-step batches
+T_ROLL = 256  # steps per env per update -> 2048-step batches
 TOTAL_UPDATES = 5000
 LR = 3e-4
 GAMMA = 0.995
@@ -55,13 +55,13 @@ MINIBATCH = 512
 ENT_COEF = 0.02
 VF_COEF = 0.5
 GRAD_CLIP = 0.5
-HIT_R = 0.3                  # shaping per hit dealt/taken (game-scored anyway)
+HIT_R = 0.3          # shaping per hit dealt/taken (game-scored anyway)
 EPISODE_WALL_S = 90.0
 SPAWN_JITTER = 0.08
-EVAL_EVERY = 10              # updates between evals
+EVAL_EVERY = 10      # updates between evals
 EVAL_EPISODES = 24
-RECORD_EPISODES = 3          # replays persisted per eval
-ADVANCE_WIN = 0.60           # win rate to climb a curriculum level
+RECORD_EPISODES = 3  # replays persisted per eval
+ADVANCE_WIN = 0.60   # win rate to climb a curriculum level
 START_LEVEL, MAX_LEVEL = 1, 10
 HIDDEN = 64
 
@@ -79,12 +79,12 @@ class ActorCritic(nn.Module):
         return self.pi(z), self.v(z).squeeze(-1)
 
 
-POT_COEF = 0.5               # potential shaping: approach is worth up to ~0.5
-TIME_COST = 0.004            # per wall-second: a 90 s draw costs ~0.36
-WALL_PEN = 0.8               # per wall strike, ~0.8x a death: out-orbit, don't bank
-THRUST_COST = 0.05           # per wall-second lit: ~6 s of deliberate burns costs a
-                             # quarter-win; a 20 s power-hover costs a death. Calibrated
-                             # from the HAI fuel governor (burn:regen 19:1, ~5% duty)
+POT_COEF = 0.5      # potential shaping: approach is worth up to ~0.5
+TIME_COST = 0.004   # per wall-second: a 90 s draw costs ~0.36
+WALL_PEN = 0.8      # per wall strike, ~0.8x a death: out-orbit, don't bank
+THRUST_COST = 0.05  # per wall-second lit: ~6 s of deliberate burns costs a
+                    # quarter-win; a 20 s power-hover costs a death. Calibrated
+                    # from the scripted bots' fuel governor (burn:regen 19:1, ~5% duty)
 
 
 def make_env(level, seed, record=False):
@@ -113,6 +113,7 @@ def evaluate(net, level, run_dir, update, episodes=EVAL_EPISODES):
                 if term:
                     died = [e for e in (env.replay or {"events": []})["events"]
                             if e["ev"] == "death"]
+
                     # without a replay, infer from reward sign
                     won = (died and died[-1]["ship"] == 1) or (not died and r > 0)
                     outcome = "win" if won else "loss"
@@ -165,7 +166,7 @@ def train():
     t0 = time.time()
 
     for update in range(1, TOTAL_UPDATES + 1):
-        # -- rollout ------------------------------------------------------------
+        # rollout
         O = torch.zeros((T_ROLL, N_ENV, OBS_DIM))
         A = torch.zeros((T_ROLL, N_ENV), dtype=torch.long)
         LOGP = torch.zeros((T_ROLL, N_ENV))
@@ -184,7 +185,7 @@ def train():
             for i, env in enumerate(envs):
                 o2, r, term, trunc, _ = env.step(int(a[i]))
                 R[t, i] = r
-                D[t, i] = float(term)          # truncation is not terminal
+                D[t, i] = float(term)  # truncation is not terminal
                 if term or trunc:
                     o2, _ = env.reset()
                 obs[i] = o2
@@ -192,7 +193,7 @@ def train():
             _, last_v = net(torch.as_tensor(
                 [list(map(float, o)) for o in obs]).float())
 
-        # -- GAE ------------------------------------------------------------------
+        # GAE
         ADV = torch.zeros_like(R)
         gae = torch.zeros(N_ENV)
         for t in reversed(range(T_ROLL)):
@@ -208,7 +209,7 @@ def train():
         b_adv = (b_adv - b_adv.mean()) / (b_adv.std() + 1e-8)
         b_ret = RET.reshape(-1)
 
-        # -- clipped-surrogate epochs (lr annealed linearly to 0) ------------------
+        # clipped-surrogate epochs (lr annealed linearly to 0)
         for g in opt.param_groups:
             g["lr"] = LR * (1 - (update - 1) / TOTAL_UPDATES)
         n = b_o.shape[0]
@@ -227,7 +228,7 @@ def train():
                 nn.utils.clip_grad_norm_(net.parameters(), GRAD_CLIP)
                 opt.step()
 
-        # -- eval / curriculum -----------------------------------------------------
+        # eval / curriculum
         if update % EVAL_EVERY == 0:
             win, lose, draw = evaluate(net, level, run_dir, update)
             sps = (update * T_ROLL * N_ENV) / (time.time() - t0)
@@ -237,7 +238,7 @@ def train():
             print(f"upd {update:4d}  L{level}  win {win * 100:3.0f}%  "
                   f"loss {lose * 100:3.0f}%  draw {draw * 100:3.0f}%  "
                   f"({sps:.0f} steps/s, {time.time() - t0:.0f}s)", flush=True)
-            if win > best_win:            # M2's lesson: always keep the best
+            if win > best_win:  # M2's lesson: always keep the best
                 best_win = win
                 torch.save(net.state_dict(), run_dir / f"best_L{level}.pt")
             if win >= ADVANCE_WIN:

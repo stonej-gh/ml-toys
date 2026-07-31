@@ -52,5 +52,6 @@ def sample_scene(seed: int) -> Scene:
     for _ in range(min(rng.poisson(1.5), _MAX_LASERS)):
         lx, ly = _position(rng)
         lasers.append((lx, ly))
+
     # star_seed varies the background clutter so the net can't memorize it
     return Scene(ships=ships, lasers=lasers, star_seed=int(rng.integers(1 << 31)))

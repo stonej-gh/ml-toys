@@ -27,6 +27,7 @@ import csv
 import json
 import math
 import random
+import statistics
 import sys
 import time
 from pathlib import Path
@@ -37,19 +38,19 @@ import torch.nn as nn
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from orbitduel.survive import SurviveEnv, ACTIONS, OBS_DIM
 
-# --- hyperparameters -----------------------------------------------------------
-TOTAL_STEPS = 600_000        # env steps (each = 4 physics frames)
+# hyperparameters
+TOTAL_STEPS = 600_000  # env steps (each = 4 physics frames)
 BUFFER_SIZE = 200_000
 WARMUP_STEPS = 5_000
 BATCH = 128
 GAMMA = 0.99
-LR = 5e-4                    # 1e-3 learned fast then collapsed (catastrophic forgetting)
+LR = 5e-4              # 1e-3 learned fast then collapsed (catastrophic forgetting)
 EPS_START, EPS_END, EPS_DECAY_STEPS = 1.0, 0.05, 150_000
 TARGET_SYNC = 4_000
 EVAL_EVERY = 25_000
 EVAL_EPISODES = 50
 HIDDEN = 64
-DEVICE = "cpu"               # tiny net: CPU beats MPS's per-op overhead
+DEVICE = "cpu"         # tiny net: CPU beats MPS's per-op overhead
 
 
 class QNet(nn.Module):
@@ -109,8 +110,7 @@ def evaluate(policy, episodes=EVAL_EPISODES, seed=10_000):
                 lifetimes.append(env.wall_seconds())
                 survived += trunc
                 break
-    lifetimes.sort()
-    med = lifetimes[len(lifetimes) // 2]
+    med = statistics.median(lifetimes)
     return med, sum(lifetimes) / len(lifetimes), survived / episodes
 
 
@@ -137,10 +137,11 @@ def train(run_dir):
     env = SurviveEnv(seed=1)
     obs, _ = env.reset()
     episode_lifetimes = []
-    best = (-1.0, -1.0)          # (eval median, survival rate)
+    best = (-1.0, -1.0)  # (eval median, survival rate)
     t0 = time.time()
 
-    metrics = csv.writer(open(run_dir / "metrics.csv", "w", newline=""))
+    metrics_f = open(run_dir / "metrics.csv", "w", newline="")
+    metrics = csv.writer(metrics_f)
     metrics.writerow(["step", "eps", "recent_mean_life",
                       "eval_median", "eval_mean", "eval_survived"])
 
@@ -150,6 +151,7 @@ def train(run_dir):
         a = random.randrange(len(ACTIONS)) if random.random() < eps \
             else greedy_action(q, obs)
         obs2, r, term, trunc, _ = env.step(a)
+
         # bootstrapping cut only on real deaths - truncation is not a terminal state
         buf.push(obs, a, r, obs2, term)
         obs = obs2
@@ -178,6 +180,7 @@ def train(run_dir):
             recent = sum(episode_lifetimes[-50:]) / max(1, len(episode_lifetimes[-50:]))
             metrics.writerow([step, f"{eps:.3f}", f"{recent:.2f}",
                               f"{med:.2f}", f"{mean:.2f}", f"{surv:.2f}"])
+            metrics_f.flush()  # an interrupted run keeps its rows
             print(f"step {step:>7}  eps {eps:.2f}  recent-life {recent:6.2f}s  "
                   f"eval median {med:6.2f}s mean {mean:6.2f}s "
                   f"survived {surv * 100:3.0f}%  ({time.time() - t0:.0f}s)",
@@ -186,6 +189,7 @@ def train(run_dir):
                 best = (med, surv)
                 torch.save(q.state_dict(), run_dir / "best.pt")
 
+    metrics_f.close()
     torch.save(q.state_dict(), run_dir / "final.pt")
     export_json(q, run_dir / "final.json")
     print(f"done in {time.time() - t0:.0f}s; best eval median {best[0]:.2f}s survival {best[1] * 100:.0f}%")
@@ -203,9 +207,10 @@ def main():
         q.load_state_dict(torch.load(args.eval))
         q.eval()
         rng = random.Random(2)
+        coast = ACTIONS.index((0, 0))  # the do-nothing action
         rows = [("learned (greedy)", lambda o: greedy_action(q, o)),
                 ("random", lambda o: rng.randrange(len(ACTIONS))),
-                ("coast", lambda o: 2)]
+                ("coast", lambda o: coast)]
         results = {}
         for name, pol in rows:
             med, mean, surv = evaluate(pol, episodes=200)

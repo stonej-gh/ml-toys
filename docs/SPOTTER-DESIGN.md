@@ -2,6 +2,11 @@
 
 The single reference for the model, the data, and the verification ladder.
 The [README](../README.md) carries the pitch; this doc carries the numbers.
+New to the vocabulary? The
+[glossary's spotter ladder](GLOSSARY.md#the-spotters-ladder-vision) builds it
+from "images are numbers" on up, and
+[experiments/06-spotter-port](../experiments/06-spotter-port/README.md) is
+this design as a graded, runnable exercise.
 
 ## Task
 
@@ -43,6 +48,14 @@ runtime.
 [`tools/gen_dataset.py`](../tools/gen_dataset.py) emits compressed npz shards
 (frames uint8 NHWC, masks uint8 NHW) + a manifest listing every seed/source.
 
+![A rendered duel frame beside the same frame with its class mask tinted over it](img/spotter-overlay.png)
+
+*A training pair: the frame the net sees (left) and the same frame with its
+label mask tinted (right; the hole's magenta tint marks its class). The
+renderer that drew the frame drew the mask, so every label is exact by
+construction. Regenerate with
+[`tools/contact_sheet.py`](../tools/contact_sheet.py).*
+
 - **Random scenes** ([`spotter/sample.py`](../spotter/sample.py)): seeded
   uniform coverage, with ship poses anywhere legal (outside the hole
   keep-out, off the walls), 0-8 lasers, 5% dead ships, varied star clutter.
@@ -64,6 +77,27 @@ folds into conv weights at export (fold: −2c BN params, +c bias per layer).
 | trunk | 3→8→16→16→24→24→32, all 3×3, strides 1/2/1/2/1/2, BN+ReLU | 19,464 → 19,344 |
 | M1 patch head | 4×4 avg-pool + 1×1 conv → 5 logits | 165 |
 | M2 decoder | 3× (×2 NN-up + additive 1×1 skip from trunk /4,/2,/1 + 3×3 conv) 32→16→12→8 + 1×1 seg head | 8,497 → 8,461 |
+
+The same table as a picture. Dotted lines are the additive skips of lesson
+4: high-resolution detail rejoining the decoder on the way back up.
+
+```mermaid
+flowchart TB
+  IN["input frame 320 x 192 x 3"] --> C1["3x3 conv, 8 ch, full res"]
+  C1 --> C2["3x3 conv stride 2, 16 ch, 1/2 res"]
+  C2 --> C3["3x3 conv, 16 ch"]
+  C3 --> C4["3x3 conv stride 2, 24 ch, 1/4 res"]
+  C4 --> C5["3x3 conv, 24 ch"]
+  C5 --> C6["3x3 conv stride 2, 32 ch, 1/8 res"]
+  C6 --> M1["M1 head: 4x4 pool + 1x1 conv<br/>5 logits per cell"]
+  C6 --> U1["x2 up + 3x3 conv, 16 ch"]
+  U1 --> U2["x2 up + 3x3 conv, 12 ch"]
+  U2 --> U3["x2 up + 3x3 conv, 8 ch"]
+  U3 --> SEG["1x1 seg head<br/>5 classes per pixel"]
+  C5 -. "additive 1x1 skip, 1/4 res" .-> U1
+  C3 -. "additive 1x1 skip, 1/2 res" .-> U2
+  C1 -. "additive 1x1 skip, full res" .-> U3
+```
 
 M1 trains the trunk+head **densely on full frames** against the cell-label
 grid: heatmap cell (i,j) owns the 8×8 tile at the center of its 32×32
@@ -108,6 +142,17 @@ a fixed seeded STRESS variant of the test split (stronger perturbation) is
 evaluated alongside the clean splits.
 
 ## Verification ladder
+
+```mermaid
+flowchart LR
+  PT["trained PyTorch model"] -- "export + BN fold" --> J["weights JSON"]
+  J -- "numpy forward" --> G1["float gate<br/>argmax 100%, tol 1e-4"]
+  J -- "int8 quantize<br/>max calibration" --> I8["int8 weights + scales"]
+  I8 -- "integer forward" --> G2["int8 gate<br/>bit-exact accumulators"]
+  G1 --> BUN["golden bundle in deploy/"]
+  G2 --> BUN
+  BUN -- "verify.py, unchanged" --> HW["any port: C, FPGA, phone"]
+```
 
 1. **Float gate first**: pure-numpy reference forward pass vs PyTorch on
    seeded golden vectors. Measured 2026-07-08 on the trained M1 model over

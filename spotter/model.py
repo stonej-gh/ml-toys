@@ -5,7 +5,7 @@
 # Attribution appreciated; see LICENSE for details.
 """spotter architecture - the single source of truth for the network.
 
-Design constraints (see docs/DESIGN.md):
+Design constraints (see docs/SPOTTER-DESIGN.md):
   - tiny (~28k params) and int8-quantizable
   - ops a simple custom kernel can do: 3x3 conv, 1x1 conv, stride-2 conv,
     4x4 avg-pool, x2 nearest-neighbor upsample, elementwise add, ReLU
@@ -100,7 +100,7 @@ class Decoder(nn.Module):
     3x3 conv (no transposed conv), with ADDITIVE 1x1-projected skips from the
     trunk's /4, /2, /1 stages - elementwise adds stay int8-simple (requantize;
     no concat buffers). Skips were added after the no-skip decoder plateaued
-    at IoU ~0.59 on the small sprites (see docs/DESIGN.md lessons)."""
+    at IoU ~0.59 on the small sprites (see docs/SPOTTER-DESIGN.md lessons)."""
 
     def __init__(self, cin: int):
         super().__init__()
@@ -149,7 +149,7 @@ def count_params(module: nn.Module) -> int:
 
 
 if __name__ == "__main__":
-    # Param-budget self-check - the numbers docs/DESIGN.md commits to.
+    # Param-budget self-check - the numbers docs/SPOTTER-DESIGN.md commits to.
     m = SpotterNet(mode="dense")
     trunk = count_params(m.trunk)
     head = count_params(m.head)

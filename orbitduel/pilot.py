@@ -20,11 +20,6 @@ arena). What's kept:
   lead-aim blend, and 0.5h range gate; hole-shot guard (never fire a shot
   that would curve into the hole).
 
-Not ported (L11+ superhuman layers): evasion, sweep-fire, stances, fuel
-governor, curve-aware aim / AA / flank / jink. `level` is the DISPLAYED
-level of the current ladder: displayed 1 is fully passive (never fires),
-displayed L behaves like duel skill L-1 on the table axes.
-
 The pilot returns per-frame actions (turn rad/phys s, thrust, fire) for
 Arena.step; call it every frame, one instance per ship.
 """
@@ -34,19 +29,19 @@ import math
 from . import physics as P
 
 # spec table anchors (wall-time numbers converted to physics time where used)
-FLIGHT_TURN = 2 * math.pi / P.GAME_SPEED     # survival slew ~1 rev/wall s
-AIM_TURN_L1, AIM_TURN_L10 = 0.48, 1.00       # aim cap, rev/wall s
-AIM_ERR_L1 = math.radians(31.5)              # held wobble band at t=0
-COOLDOWN_L1, COOLDOWN_L10 = 1.30, 0.30       # wall s
-GAP_L1, GAP_L10 = 0.220, 0.005               # action-switch gap, wall s
-WOBBLE_REFRESH = 0.45                        # wall s
+FLIGHT_TURN = 2 * math.pi / P.GAME_SPEED  # survival slew ~1 rev/wall s
+AIM_TURN_L1, AIM_TURN_L10 = 0.48, 1.00    # aim cap, rev/wall s
+AIM_ERR_L1 = math.radians(31.5)           # held wobble band at t=0
+COOLDOWN_L1, COOLDOWN_L10 = 1.30, 0.30    # wall s
+GAP_L1, GAP_L10 = 0.220, 0.005            # action-switch gap, wall s
+WOBBLE_REFRESH = 0.45                     # wall s
 RANGE_GATE = 0.5 * P.H
-CHASE_BURST = 0.4                            # wall s: max chase-burn length...
-CHASE_REST = 0.9                             # ...then a coast/fight window
-HOLE_CLEAR = P.HOLE_R * 2.4                  # periapsis must clear this
-WALL_MARGIN = 60.0                           # P1 trigger distance off an edge
-PREDICT_WALL_S = 4.0                         # coast lookahead
-CHASE_STANDOFF = 0.30                        # early-band standoff fraction
+CHASE_BURST = 0.4                         # wall s: max chase-burn length...
+CHASE_REST = 0.9                          # ...then a coast/fight window
+HOLE_CLEAR = P.HOLE_R * 2.4               # periapsis must clear this
+WALL_MARGIN = 60.0                        # P1 trigger distance off an edge
+PREDICT_WALL_S = 4.0                      # coast lookahead
+CHASE_STANDOFF = 0.30                     # early-band standoff fraction
 
 
 def _wrap(a):
@@ -100,16 +95,17 @@ class ScriptedPilot:
 
     def __init__(self, level=1, seed=0):
         self.level = max(1, level)
-        skill = max(1, self.level - 1)               # displayed -> duel skill
+        skill = max(1, self.level - 1)    # displayed -> duel skill
         t = min(1.0, (skill - 1) / 9.0)
-        self.passive = self.level <= 1               # displayed 1 never fires
+        self.passive = self.level <= 1    # displayed 1 never fires
         self.aim_turn = (AIM_TURN_L1 + (AIM_TURN_L10 - AIM_TURN_L1) * t) \
-            * 2 * math.pi / P.GAME_SPEED             # rev/wall s -> rad/phys s
+            * 2 * math.pi / P.GAME_SPEED  # rev/wall s -> rad/phys s
         self.aim_err = AIM_ERR_L1 * (1 - t)
         self.cooldown = (COOLDOWN_L1 + (COOLDOWN_L10 - COOLDOWN_L1) * t) * P.GAME_SPEED
         self.gap = (GAP_L1 + (GAP_L10 - GAP_L1) * t) * P.GAME_SPEED
         self.lead = t
         self.chase = max(0.0, (t - 0.33) / 0.67)
+
         # deterministic per-instance wobble stream (no globals, replayable)
         self._rand_state = (seed * 2654435761 + 12345) & 0xFFFFFFFF
         self.wobble = 0.0
@@ -118,10 +114,10 @@ class ScriptedPilot:
         self.gap_until = 0.0
         self.burst_start = -1.0
         self.rest_until = 0.0
-        self._pred_t = -1e9                          # coast-prediction cache
+        self._pred_t = -1e9  # coast-prediction cache
         self._pred = (1e9, True)
 
-    def _rand(self):                                  # xorshift, uniform [0,1)
+    def _rand(self):         # xorshift, uniform [0,1)
         x = self._rand_state
         x ^= (x << 13) & 0xFFFFFFFF
         x ^= x >> 17
@@ -129,7 +125,7 @@ class ScriptedPilot:
         self._rand_state = x
         return x / 0xFFFFFFFF
 
-    # -- the per-frame brain ------------------------------------------------
+    # the per-frame brain
     def __call__(self, arena, idx):
         me = arena.ships[idx]
         foe = arena.ships[1 - idx]
@@ -150,7 +146,7 @@ class ScriptedPilot:
         # circularizes AT THE CURRENT RADIUS (always the cheapest safe orbit)
         # with an outward bias when the dive threatens the hole: commanding a
         # far radius's circular speed mid-dive decelerates and makes it worse.
-        if now - self._pred_t > 0.05:                # re-predict every 3 frames
+        if now - self._pred_t > 0.05:  # re-predict every 3 frames
             self._pred = predict_coast(me.x, me.y, me.vx, me.vy,
                                        PREDICT_WALL_S * P.GAME_SPEED)
             self._pred_t = now
@@ -173,10 +169,10 @@ class ScriptedPilot:
             r_foe = foe.radius()
             dist = math.hypot(foe.x - me.x, foe.y - me.y)
             if dist < RANGE_GATE * 0.9:
-                r_star = r_foe * (1 + standoff)       # closed: hold the standoff
-            else:                                     # (co-orbital only at L10)
-                # dip INSIDE until closed - the faster inner sweep laps the foe
-                # (a signed-phase chooser flaps at the +/-pi ambiguity and stalls)
+                r_star = r_foe * (1 + standoff)  # closed: hold the standoff
+            else:                                # (co-orbital only at L10)
+                                                 # dip INSIDE until closed - the faster inner sweep laps the foe
+                                                 # (a signed-phase chooser flaps at the +/-pi ambiguity and stalls)
                 r_star = r_foe * (1 - 0.30 * self.chase)
             r_star = max(HOLE_CLEAR * 1.1, min(r_wall_safe, r_star))
             act = self._orbit_shift_burn(me, r, r_star) \
@@ -199,10 +195,10 @@ class ScriptedPilot:
             self.wobble = (self._rand() * 2 - 1) * self.aim_err
             self.wobble_t = now
         dist = math.hypot(foe.x - me.x, foe.y - me.y)
-        tof = dist / P.LASER_SPEED                    # straight-shot time of flight
+        tof = dist / P.LASER_SPEED                     # straight-shot time of flight
         aim_x = foe.x + foe.vx * tof * self.lead - me.x
         aim_y = foe.y + foe.vy * tof * self.lead - me.y
-        want = math.atan2(aim_y, aim_x) - math.pi / 2   # nose 0 = +y
+        want = math.atan2(aim_y, aim_x) - math.pi / 2  # nose 0 = +y
         err = _wrap(want + self.wobble - me.heading)
         turn = max(-self.aim_turn, min(self.aim_turn, err / P.DT))
 
@@ -217,7 +213,7 @@ class ScriptedPilot:
             self.gap_until = now + self.gap
         return (turn, 0, fire)
 
-    # -- burn helpers ---------------------------------------------------------
+    # burn helpers
     def _recover_burn(self, me, r, min_r, inside, r_wall_safe):
         """P2 emergency: circularize at the current radius, biased outward when
         the predicted periapsis threatens the hole, inward when leaving the box."""
@@ -227,9 +223,9 @@ class ScriptedPilot:
         v_c = math.sqrt(P.GM / r)
         vr_des = 0.0
         if min_r < HOLE_CLEAR:
-            vr_des = 0.5 * v_c * (1 - min_r / HOLE_CLEAR)     # lift the periapsis
+            vr_des = 0.5 * v_c * (1 - min_r / HOLE_CLEAR)  # lift the periapsis
         elif not inside and r > r_wall_safe:
-            vr_des = -0.25 * v_c                              # pull off the wall
+            vr_des = -0.25 * v_c                           # pull off the wall
         des_vx = tx * v_c + ux * vr_des
         des_vy = ty * v_c + uy * vr_des
         dvx, dvy = des_vx - me.vx, des_vy - me.vy
@@ -248,12 +244,12 @@ class ScriptedPilot:
         """P2/P3 radius migration: aim the velocity error, thrust it out."""
         ux, uy = me.x / r, me.y / r
         sense = 1 if (me.x * me.vy - me.y * me.vx) >= 0 else -1
-        tx, ty = -uy * sense, ux * sense              # keep the current sweep sense
-        v_t = math.sqrt(P.GM / max(r_star, 1.0))      # circular speed at target
-        vr_des = -0.35 * (r - r_star)                 # gentle radial pull
+        tx, ty = -uy * sense, ux * sense          # keep the current sweep sense
+        v_t = math.sqrt(P.GM / max(r_star, 1.0))  # circular speed at target
+        vr_des = -0.35 * (r - r_star)             # gentle radial pull
         des_vx = tx * v_t + ux * vr_des
         des_vy = ty * v_t + uy * vr_des
         dvx, dvy = des_vx - me.vx, des_vy - me.vy
-        if math.hypot(dvx, dvy) < 12.0:               # close enough: coast
+        if math.hypot(dvx, dvy) < 12.0:           # close enough: coast
             return (0.0, 0, 0)
         return self._steer_burn(me, math.atan2(dvy, dvx), FLIGHT_TURN)

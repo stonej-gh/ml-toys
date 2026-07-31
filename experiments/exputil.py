@@ -27,15 +27,15 @@ REPO = Path(__file__).resolve().parents[1]
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
-from orbitduel.env import OrbitDuelEnv          # noqa: E402
-from orbitduel.netpilot import PolicyNet        # noqa: E402
-from orbitduel.pilot import ScriptedPilot       # noqa: E402
-from orbitduel.survive import SurviveEnv        # noqa: E402
+from orbitduel.env import OrbitDuelEnv     # noqa: E402
+from orbitduel.netpilot import PolicyNet   # noqa: E402
+from orbitduel.pilot import ScriptedPilot  # noqa: E402
+from orbitduel.survive import SurviveEnv   # noqa: E402
 
 MODELS = REPO / "agents" / "models"
 
 
-# -- survive task -----------------------------------------------------------------
+# survive task
 
 def survive_stats(policy, episodes, seed0=10_000, max_wall_seconds=60.0):
     """Run `policy(obs) -> action index` on fixed-seed SurviveEnv episodes.
@@ -56,7 +56,7 @@ def survive_stats(policy, episodes, seed0=10_000, max_wall_seconds=60.0):
             "survived_frac": survived / episodes}
 
 
-# -- duel evals with grader counters ------------------------------------------------
+# duel evals with grader counters
 
 def duel_stats(model_json, level, episodes, rules, seed0=90_000,
                max_wall_seconds=120.0, **env_kwargs):
@@ -91,14 +91,17 @@ def median_walls(stats):
     return statistics.median(s["wall_touches"] for s in stats)
 
 
-# -- compact seeded PPO (the live reward-hacking run) --------------------------------
+# compact seeded PPO (the live reward-hacking run)
 
 def train_short_ppo(seed, rules, level, updates, n_env=8, t_roll=256,
-                    episode_wall_s=90.0, thrust_cost=0.0, log=print):
+                    episode_wall_s=90.0, thrust_cost=0.0, log=print,
+                    **env_kwargs):
     """A budgeted replica of agents/ppo_duel.py's loop: same net, same
     hyperparameters, no curriculum, no file I/O. Returns the trained
     ActorCritic. Seeded torch on one thread: two runs on one machine are
-    identical; across platforms only threshold-comparable."""
+    identical; across platforms only threshold-comparable. Extra kwargs go
+    to OrbitDuelEnv and beat the M3 defaults (e.g. pot_coef=0,
+    fire_cone_deg=None reproduces the pre-shaping, pre-cone eras)."""
     import random
     import torch
     import agents.ppo_duel as M3
@@ -109,12 +112,13 @@ def train_short_ppo(seed, rules, level, updates, n_env=8, t_roll=256,
     random.seed(seed)
 
     def make_env(env_seed):
+        kw = dict(hit_reward=M3.HIT_R, spawn_jitter=M3.SPAWN_JITTER,
+                  pot_coef=M3.POT_COEF, time_cost=M3.TIME_COST,
+                  gamma=M3.GAMMA, thrust_cost=thrust_cost)
+        kw.update(env_kwargs)
         return OrbitDuelEnv(opponent=ScriptedPilot(level, seed=env_seed),
-                            rules=rules, hit_reward=M3.HIT_R,
-                            spawn_jitter=M3.SPAWN_JITTER,
-                            max_wall_seconds=episode_wall_s, seed=env_seed,
-                            pot_coef=M3.POT_COEF, time_cost=M3.TIME_COST,
-                            gamma=M3.GAMMA, thrust_cost=thrust_cost)
+                            rules=rules, seed=env_seed,
+                            max_wall_seconds=episode_wall_s, **kw)
 
     net = ActorCritic()
     opt = torch.optim.Adam(net.parameters(), lr=M3.LR)

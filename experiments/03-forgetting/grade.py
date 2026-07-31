@@ -6,11 +6,13 @@
 """Grader for experiment 03 (curriculum forgetting vs league retention).
 Run: pytest -m grade_cheap.
 
-All inference is pure Python (orbitduel/netpilot.py), so each cell is an
-exact integer on every platform. Reference matrix, 12 episodes/cell, re-pinned
-2026-07-16 to the current physics: v1 curriculum 2/3/10/9 across L1/L4/L7/L10
-(the ladder-climber forgets the easy rungs); v3 league 12/12/12/12 (flat
-retention); v6 full champion 12/11/9/6 (strong low, tapering toward L10)."""
+All inference is pure Python (orbitduel/netpilot.py), so each cell is
+deterministic: two runs on one machine match byte for byte. Reference matrix,
+12 episodes/cell, measured 2026-07-30 under the current physics: v1
+curriculum 2/4/9/9 across L1/L4/L7/L10 (the ladder-climber forgets the easy
+rungs); v3 league 12/12/12/12 (flat retention); v6 full champion 12/11/8/6
+(strong low, tapering toward L10). Knife-edge episodes can flip by a single
+game across environments, so the assertions are margins, not the matrix."""
 
 import sys
 from pathlib import Path
@@ -44,11 +46,13 @@ def test_curriculum_forgets_its_teachers():
 def test_league_retains_every_level():
     """The league model holds the whole panel at once. The full champion is
     strong at the low ladder and tapers toward the hardest rungs."""
+
     # League training: flat retention across every rung.
     v3 = row("duel_ppo_v3_league.json", "v3-rude")
     print(f"\nduel_ppo_v3_league.json @ v3-rude: {v3}")
     for lv in PANEL:
         assert v3[lv] >= 11, f"league slipped vs L{lv}: {v3[lv]}/12 < 11"
+
     # v6 full champion: strong at the bottom, a monotone taper toward L10.
     v6 = row("duel_ppo_v6_final.json", "v6-full")
     print(f"duel_ppo_v6_final.json @ v6-full: {v6}")

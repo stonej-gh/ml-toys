@@ -59,7 +59,8 @@ def run(model, level, episodes, rules, out, record, seed0):
         if env.replay is not None:
             meta = {"update": 0, "level": level, "episode": ep,
                     "outcome": outcome, "reward": round(total_r, 2),
-                    "wall_s": round(info["frames"] / 60.0, 1)}
+                    "wall_s": round(info["frames"] / 60.0, 1),
+                    "walls": info["wall_touches"]}
             fn = f"ep{ep:03d}.json"
             (rep_dir / fn).write_text(json.dumps({"meta": meta, **env.replay}))
             manifest.append({"file": fn, **meta})

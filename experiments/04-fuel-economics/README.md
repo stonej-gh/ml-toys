@@ -1,11 +1,15 @@
 # Experiment 04, fuel economics: the tax bounds the mean, the tank bounds the burst
 
+*Level: intermediate. In plain English: charging for fuel makes long burns
+expensive; a hard fuel tank makes them impossible. Different rule, different
+behavior, and the difference is measurable.*
+
 *A notebook-style experiment: everything here runs from the repo root with
 the snippets below. No grader; the graded flagship for this rule family is
 [02-reward-hacking](../02-reward-hacking/README.md).*
 
 **Question.** Thrust was originally priced with a per-second tax
-(`thrust_cost=0.05` per wall-second lit). The spawn-ambush era proved the
+(`thrust_cost=0.05` per second lit, in match time). The spawn-ambush era proved the
 flaw: a tax bounds *average* consumption but not a single long burn, so a
 burn-to-hover ambush was merely expensive rather than impossible (see
 [docs/REWARD-SPEC.md](../../docs/REWARD-SPEC.md), exploit 3). What does a
@@ -16,7 +20,7 @@ thrust is dead until the tank regenerates) do that the tax cannot?
 `longest_burn_s` per episode, so burn discipline is measurable, not
 aesthetic. The cleanest subject is a policy that *wants* to burn forever: the
 fresh wall-rider from experiment 02 trains in a no-fuel world and finishes
-with its engine pinned (median duty 0.99). Evaluate it with the tank off,
+with its engine mostly lit (median duty 0.76). Evaluate it with the tank off,
 then force the tank on: the `fuel=True` constructor kwarg overrides the era
 preset.
 
@@ -35,12 +39,12 @@ for fuel in (False, True):
 # EOF
 ```
 
-**Measured result (reference platform, 2026-07-10).** Tank off: median duty
-0.99, median longest burn 56.8 s, every episode a wall-riding draw. Tank
-forced on: duty 0.22, longest burn 0.92 s, and every episode becomes a loss,
-because the continuous-burn strategy physically no longer exists. A reward
-tax could only have made those 56-second burns costly; the tank makes them
-impossible, which is the design point: encode *values* in reward, but encode
+**Measured result (reference platform, 2026-07-30).** Tank off: median duty
+0.76, median longest burn 1.67 s, every episode a wall-riding draw. Tank
+forced on: duty 0.20, longest burn 0.37 s, and every episode becomes a loss,
+because the burn pattern the strategy depends on physically no longer
+exists. A reward tax could only have priced that thrust; the tank removes
+it, which is the design point: encode *values* in reward, but encode
 *capabilities* in mechanics.
 
 **The shipped generation is already disciplined.** The same counters over the
@@ -48,11 +52,11 @@ modern checkpoints (12 episodes vs L7, era-matched rules):
 
 | checkpoint | duty (median) | longest burn (median) |
 |---|---|---|
-| [duel_ppo_v3_league](../../agents/models/duel_ppo_v3_league.json) @ `v3-rude` | 0.077 | 0.32 s |
-| [duel_ppo_v6_final](../../agents/models/duel_ppo_v6_final.json) @ `v6-full` | 0.014 | 0.03 s |
+| [duel_ppo_v3_league](../../agents/models/duel_ppo_v3_league.json) @ `v3-rude` | 0.083 | 0.33 s |
+| [duel_ppo_v6_final](../../agents/models/duel_ppo_v6_final.json) @ `v6-full` | 0.013 | 0.03 s |
 
 The scripted bots' hand-tuned governor runs ~5% duty; the learned pilots sit
-at or under it. The economics came from translating that governor's
+in the same discipline band, the champion far under it. The economics came from translating that governor's
 burn:regen ratio (0.67/s vs 0.035/s, ~19:1) into both the reward price and
 the tank, so "flies like the bots were tuned to fly" is a measured property.
 

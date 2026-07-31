@@ -12,10 +12,10 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from spotter import CLASSES, IGNORE  # noqa: E402
+from spotter import CLASSES, IGNORE                                 # noqa: E402
 from spotter.render import (H, HOLE_R, SCALE, W, Scene, ShipState,  # noqa: E402
                             load_replay_scenes, render, to_px)
-from spotter.sample import sample_scene  # noqa: E402
+from spotter.sample import sample_scene                             # noqa: E402
 
 REPLAY = Path(__file__).resolve().parents[1] / "assets/replays/seed_000.json"
 
@@ -35,6 +35,7 @@ def test_mask_class_ids_and_presence():
     _, mk = render(sc)
     m = np.asarray(mk)
     present = set(np.unique(m).tolist())
+
     # all five classes on screen, flame ignore pixels from the thrusting ship
     assert present == {0, 1, 2, 3, 4, IGNORE}
     assert len(CLASSES) == 5
@@ -47,7 +48,7 @@ def test_frame_mask_alignment():
                       ShipState(0, 0, 0, False, False)], lasers=[])
     _, mk = render(sc)
     ys, xs = np.nonzero(np.asarray(mk) == 1)
-    assert len(xs) > 40                      # hull is well over 40 px
+    assert len(xs) > 40  # hull is well over 40 px
     px, py = to_px(x, y)
     assert abs(xs.mean() - px) < 3.0
     assert abs(ys.mean() - py) < 3.0

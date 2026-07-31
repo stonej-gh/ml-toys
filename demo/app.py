@@ -33,16 +33,16 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse, Response
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT))          # repo-local run without install
+sys.path.insert(0, str(ROOT))                                    # repo-local run without install
 sys.path.insert(0, str(ROOT / "deploy"))
-from spotter import CLASSES, PALETTE  # noqa: E402
-from spotter.reference import forward_heatmap  # noqa: E402
-from spotter.reference import load_doc as load_doc_m1  # noqa: E402
-from spotter.render import load_replay_scenes, render  # noqa: E402
+from spotter import CLASSES, PALETTE                             # noqa: E402
+from spotter.reference import forward_heatmap                    # noqa: E402
+from spotter.reference import load_doc as load_doc_m1            # noqa: E402
+from spotter.render import load_replay_scenes, render            # noqa: E402
 from spotter_forward import (forward_dense, forward_dense_int8,  # noqa: E402
                              load_doc)
 
-from PIL import Image  # noqa: E402
+from PIL import Image                                            # noqa: E402
 
 app = FastAPI()
 STATE = {}
@@ -159,7 +159,7 @@ def _heatmap(i: int) -> Image.Image:
         if c == 0:
             continue
         a = int(180 * conf[c, r, col])
-        y0, x0 = 8 * r + 12, 8 * col + 12       # the cell's own 8x8 tile
+        y0, x0 = 8 * r + 12, 8 * col + 12  # the cell's own 8x8 tile
         tint[y0:y0 + 8, x0:x0 + 8] = (*PALETTE[c], a)
     im.alpha_composite(Image.fromarray(tint))
     return im.convert("RGB")
@@ -241,7 +241,7 @@ def main():
     try:
         STATE["patch"] = load_doc_m1(args.patch)
     except FileNotFoundError:
-        STATE["patch"] = None      # heatmap view needs a local M1 run
+        STATE["patch"] = None  # heatmap view needs a local M1 run
     STATE["scenes"] = load_replay_scenes(args.replay)
     print(f"{len(STATE['scenes'])} frames; http://127.0.0.1:{args.port}")
     uvicorn.run(app, host="127.0.0.1", port=args.port, log_level="warning")
