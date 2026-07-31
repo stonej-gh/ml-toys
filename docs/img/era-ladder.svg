@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 950 800" width="712.5" height="600" role="img" aria-labelledby="ttl dsc">
+<title id="ttl">The rule eras, and the exploit that forced each one</title>
+<desc id="dsc">Four rule presets in time order, running down the page, each one a patch for
+something the agent found in the era before it. The first era, v1-freewalls, has free wall
+bounces, no fuel budget, fixed spawn lanes and straight lasers. Training under it produced a
+draw camper and a wall rider, so the second era, v3-rude, gave walls a spin kick and a 0.8
+penalty. That agent then learned a spawn ambush and a burn-to-hover, so the third era,
+v4-honest, added a fuel budget and randomized the spawn phase. That agent aimed as though
+lasers flew straight, which was a lie in a gravity field, so the fourth era, v6-full, turned
+on gravity for lasers and added hit spin. v6-full is the shipped default. The presets are
+named for the model eras in which the rules changed, which is why the numbering skips. The
+column on the right is the point: every rule in this environment exists because an agent found
+a way around the previous one.</desc>
+
+<style>
+  .bg   { fill: #ffffff; }
+  .n    { stroke-width: 1.7; }
+  .era  { fill: #f6f8fa; stroke: #c9d1d9; }
+  .ship { fill: #e8f1fb; stroke: #8fb4dc; stroke-width: 2.8; }
+  .exp  { fill: #fdf3e6; stroke: #dfae79; }
+  text  { font-family: Helvetica Neue; }
+  .t    { fill: #16202b; font-size: 18px; font-weight: 600; }
+  .s    { fill: #5c6773; font-size: 14px; }
+  .x    { fill: #a2661f; font-size: 14px; font-weight: 600; }
+  .xf   { fill: #5c6773; font-size: 14px; }
+  .note { fill: #5c6773; font-size: 14px; font-style: italic; }
+  .edge { fill: none; stroke: #7b8695; stroke-width: 2.2; }
+  .tie  { fill: none; stroke: #dfae79; stroke-width: 1.5; stroke-dasharray: 4 4; }
+</style>
+
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+        orient="auto-start-reverse" markerUnits="strokeWidth">
+  <path d="M0,1 L10,5 L0,9 z" fill="context-stroke"/>
+</marker>
+
+<rect class="bg" x="0" y="0" width="950" height="800"/>
+
+<path class="edge" marker-end="url(#ah)" d="M215,170 V240"/>
+<path class="edge" marker-end="url(#ah)" d="M215,360 V430"/>
+<path class="edge" marker-end="url(#ah)" d="M215,550 V620"/>
+
+<line class="tie" x1="225" y1="205" x2="450" y2="205"/>
+<line class="tie" x1="225" y1="395" x2="450" y2="395"/>
+<line class="tie" x1="225" y1="585" x2="450" y2="585"/>
+
+<rect class="n era" x="60" y="60" width="310" height="110" rx="10"/>
+<text class="t" x="215" y="97" text-anchor="middle">v1-freewalls</text>
+<text class="s" x="215" y="123" text-anchor="middle">walls free, no fuel</text>
+<text class="s" x="215" y="145" text-anchor="middle">fixed lanes, straight lasers</text>
+
+<rect class="n era" x="60" y="250" width="310" height="110" rx="10"/>
+<text class="t" x="215" y="287" text-anchor="middle">v3-rude</text>
+<text class="s" x="215" y="313" text-anchor="middle">wall spin + 0.8 penalty</text>
+<text class="s" x="215" y="335" text-anchor="middle">still no fuel</text>
+
+<rect class="n era" x="60" y="440" width="310" height="110" rx="10"/>
+<text class="t" x="215" y="477" text-anchor="middle">v4-honest</text>
+<text class="s" x="215" y="503" text-anchor="middle">fuel budget, spawn phase</text>
+<text class="s" x="215" y="525" text-anchor="middle">lasers still straight</text>
+
+<rect class="n ship" x="60" y="630" width="310" height="110" rx="10"/>
+<text class="t" x="215" y="667" text-anchor="middle">v6-full</text>
+<text class="s" x="215" y="693" text-anchor="middle">gravity on lasers, hit spin</text>
+<text class="s" x="215" y="715" text-anchor="middle">the shipped default</text>
+
+<rect class="n exp" x="460" y="160" width="430" height="90" rx="10"/>
+<text class="x"  x="675" y="195" text-anchor="middle">draw camper, wall rider</text>
+<text class="xf" x="675" y="222" text-anchor="middle">fix: wall spin + penalty</text>
+
+<rect class="n exp" x="460" y="350" width="430" height="90" rx="10"/>
+<text class="x"  x="675" y="385" text-anchor="middle">spawn ambush, hover burn</text>
+<text class="xf" x="675" y="412" text-anchor="middle">fix: fuel budget, spawn phase</text>
+
+<rect class="n exp" x="460" y="540" width="430" height="90" rx="10"/>
+<text class="x"  x="675" y="575" text-anchor="middle">straight-laser aim lie</text>
+<text class="xf" x="675" y="602" text-anchor="middle">fix: gravity on lasers</text>
+
+<text class="note" x="475" y="770" text-anchor="middle">Every rule on the left exists because an agent found a way around the one above it.</text>
+</svg>

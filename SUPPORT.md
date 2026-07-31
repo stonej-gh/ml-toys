@@ -8,4 +8,4 @@ are welcome; responses are best-effort and can take a while.
 - **Supported setup:** the pinned versions in the requirements files, on the
   platforms the CI runs. Anything else may well work, but it is untested.
 - **The stories behind these systems:**
-  [jeffrey-stone.com/research](https://jeffrey-stone.com/research/).
+  [the research notebooks](https://stonej-gh.github.io/research/).

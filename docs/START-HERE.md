@@ -17,7 +17,7 @@ a black hole: gravity is strong, fuel is short, and the winning move is
 usually a better orbit rather than a better trigger finger. The question
 behind everything here: could a small neural network learn to fly that duel,
 from nothing, on a laptop? The full write-up is
-[Half a worm, flying a spaceship](https://jeffrey-stone.com/research/worm/);
+[Half a worm, flying a spaceship](https://stonej-gh.github.io/research/worm/);
 what follows is the arc.
 
 Learning by trial and error needs millions of tries, so the arena is built
@@ -27,6 +27,11 @@ CPU. The first learner got the training-wheels task: spawn on an
 orbit that is doomed to spiral into the black hole, and learn to burn your
 way out. A network with 5,126 numbers in its head learns that rescue in a few
 minutes.
+
+Orbital motion is unintuitive at first, and the arena leans on it hard.
+[Think in orbits](https://stonej-gh.github.io/orbits/) covers the parts that
+matter here, like why you brake to catch something ahead of you, and why
+aiming straight at an opponent misses.
 
 Then came the duels, and the duels came with scandals. The reward said win;
 it did not say fly well. One early agent learned that parking in a quiet
@@ -62,8 +67,8 @@ Python.
 *What the spotter sees (left) and the answer key it learns from (right):
 the renderer that draws the frame also draws the labels, so every label is
 free and exact.* That story is
-[The net that watches the screen](https://jeffrey-stone.com/research/spotter/),
-and the rest of [the lab notebooks](https://jeffrey-stone.com/research/) sit
+[The net that watches the screen](https://stonej-gh.github.io/research/spotter/),
+and the rest of [the lab notebooks](https://stonej-gh.github.io/research/) sit
 alongside both.
 
 ## What is a neural network
@@ -88,12 +93,7 @@ which actions tend to lead to reward and shifts the network toward them. The
 craft is in designing the world and the reward, and this repo is honest
 about that being where all its own failures lived.
 
-```mermaid
-flowchart LR
-  A["the agent<br/>a 5,126-number net"] -- "action: turn, thrust, fire" --> W["the world<br/>orbitduel physics"]
-  W -- "observation: 8 or 19 numbers" --> A
-  W -- "reward: +1 win, -1 fall in" --> A
-```
+![The reinforcement-learning loop: the agent sends an action to the world, the world returns an observation and a reward](img/rl-loop.svg)
 
 The pilot's vocabulary
 (DQN, PPO, replay buffers, leagues) is defined one term at a time in the

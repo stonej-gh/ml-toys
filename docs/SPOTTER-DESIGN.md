@@ -78,26 +78,11 @@ folds into conv weights at export (fold: −2c BN params, +c bias per layer).
 | M1 patch head | 4×4 avg-pool + 1×1 conv → 5 logits | 165 |
 | M2 decoder | 3× (×2 NN-up + additive 1×1 skip from trunk /4,/2,/1 + 3×3 conv) 32→16→12→8 + 1×1 seg head | 8,497 → 8,461 |
 
-The same table as a picture. Dotted lines are the additive skips of lesson
-4: high-resolution detail rejoining the decoder on the way back up.
+The same table as a picture. The dashed bridges are the additive skips of
+lesson 4: high-resolution detail rejoining the decoder on the way back up, at
+matching resolution.
 
-```mermaid
-flowchart TB
-  IN["input frame 320 x 192 x 3"] --> C1["3x3 conv, 8 ch, full res"]
-  C1 --> C2["3x3 conv stride 2, 16 ch, 1/2 res"]
-  C2 --> C3["3x3 conv, 16 ch"]
-  C3 --> C4["3x3 conv stride 2, 24 ch, 1/4 res"]
-  C4 --> C5["3x3 conv, 24 ch"]
-  C5 --> C6["3x3 conv stride 2, 32 ch, 1/8 res"]
-  C6 --> M1["M1 head: 4x4 pool + 1x1 conv<br/>5 logits per cell"]
-  C6 --> U1["x2 up + 3x3 conv, 16 ch"]
-  U1 --> U2["x2 up + 3x3 conv, 12 ch"]
-  U2 --> U3["x2 up + 3x3 conv, 8 ch"]
-  U3 --> SEG["1x1 seg head<br/>5 classes per pixel"]
-  C5 -. "additive 1x1 skip, 1/4 res" .-> U1
-  C3 -. "additive 1x1 skip, 1/2 res" .-> U2
-  C1 -. "additive 1x1 skip, full res" .-> U3
-```
+![The spotter network as a U: resolution falls to a 40 by 24 hinge and climbs back, with three additive skips bridging at matching resolution](img/spotter-arch.svg)
 
 M1 trains the trunk+head **densely on full frames** against the cell-label
 grid: heatmap cell (i,j) owns the 8×8 tile at the center of its 32×32
@@ -143,16 +128,7 @@ evaluated alongside the clean splits.
 
 ## Verification ladder
 
-```mermaid
-flowchart LR
-  PT["trained PyTorch model"] -- "export + BN fold" --> J["weights JSON"]
-  J -- "numpy forward" --> G1["float gate<br/>argmax 100%, tol 1e-4"]
-  J -- "int8 quantize<br/>max calibration" --> I8["int8 weights + scales"]
-  I8 -- "integer forward" --> G2["int8 gate<br/>bit-exact accumulators"]
-  G1 --> BUN["golden bundle in deploy/"]
-  G2 --> BUN
-  BUN -- "verify.py, unchanged" --> HW["any port: C, FPGA, phone"]
-```
+![The verification ladder: a float gate and an int8 gate that must both pass before the golden bundle exists](img/verify-ladder.svg)
 
 1. **Float gate first**: pure-numpy reference forward pass vs PyTorch on
    seeded golden vectors. Measured 2026-07-08 on the trained M1 model over

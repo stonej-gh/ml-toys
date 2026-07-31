@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 880" width="735" height="660" role="img" aria-labelledby="ttl dsc">
+<title id="ttl">The spotter network: resolution down, then back up</title>
+<desc id="dsc">An encoder-decoder read along a resolution axis, drawn as a U. The encoder runs
+down the left side, the decoder climbs the right, and the hinge sits at the bottom. A 320 by
+192 colour frame enters at full resolution. The encoder is six 3 by 3 convolution stages with
+batch norm and ReLU, striding at the second, fourth and sixth, so the channel schedule runs
+8, 16, 16, 24, 24, 32 while the resolution halves three times to 40 by 24 at one eighth. That
+bottleneck is the hinge of the whole design. From it the decoder climbs back: each step is a
+nearest-neighbour 2x upsample followed by a 3 by 3 convolution, narrowing 32 to 16 to 12 to 8
+channels as it returns to full resolution, ending in a 1 by 1 segmentation head that emits
+five class logits per pixel. Three dashed bridges run straight across the middle, carrying
+detail from the encoder to the decoder at matching resolution. They are 1 by 1 projections
+that are ADDED, not concatenated, so no buffer has to be held for a join, which is what makes
+the network cheap to run on small hardware. Skips were added only after a decoder without
+them plateaued. A second, alternative head hangs below the hinge: the M1 patch head, a 4 by 4
+average pool and a 1 by 1 convolution giving five logits per coarse cell. The two heads share
+the trunk and are separate modes rather than simultaneous outputs, and the dense model
+fine-tunes from the patch model's weights. Batch norm exists only during training; it is
+folded into the convolution weights at export. The patch model is 19,629 parameters and the
+dense model 28,126.</desc>
+
+<style>
+  .bg   { fill: #ffffff; }
+  .n    { stroke-width: 1.7; }
+  .enc  { fill: #e8f1fb; stroke: #8fb4dc; }
+  .dec  { fill: #eef6ee; stroke: #9dc39d; }
+  .hinge{ fill: #fdf3e6; stroke: #dfae79; stroke-width: 2.8; }
+  text  { font-family: Helvetica Neue; }
+  .t    { fill: #16202b; font-size: 18px; font-weight: 600; }
+  .s    { fill: #5c6773; font-size: 14px; }
+  .k    { fill: #c98a3c; font-size: 13.5px; font-weight: 600; }
+  .col  { fill: #8a94a0; font-size: 13px; font-weight: 600; letter-spacing: 1.3px; }
+  .note { fill: #5c6773; font-size: 14px; font-style: italic; }
+  .edge { fill: none; stroke: #7b8695; stroke-width: 1.9; }
+  .bridge { fill: none; stroke: #c98a3c; stroke-width: 1.7; stroke-dasharray: 6 4; }
+</style>
+
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+        orient="auto-start-reverse" markerUnits="strokeWidth">
+  <path d="M0,1 L10,5 L0,9 z" fill="context-stroke"/>
+</marker>
+
+<rect class="bg" x="0" y="0" width="980" height="880"/>
+
+<text class="col" x="60" y="40">ENCODER</text>
+<text class="col" x="920" y="40" text-anchor="end">DECODER</text>
+
+<path class="bridge" marker-end="url(#ah)" d="M300,235 H670"/>
+<text class="k" x="485" y="222" text-anchor="middle">additive 1x1 skip, full res</text>
+
+<path class="bridge" marker-end="url(#ah)" d="M300,375 H670"/>
+<text class="k" x="485" y="362" text-anchor="middle">additive 1x1 skip, 1/2 res</text>
+
+<path class="bridge" marker-end="url(#ah)" d="M300,515 H670"/>
+<text class="k" x="485" y="502" text-anchor="middle">additive 1x1 skip, 1/4 res</text>
+
+<path class="edge" marker-end="url(#ah)" d="M180,130 V190"/>
+<path class="edge" marker-end="url(#ah)" d="M180,270 V330"/>
+<path class="edge" marker-end="url(#ah)" d="M180,410 V470"/>
+<path class="edge" marker-end="url(#ah)" d="M180,550 V650 H360"/>
+<path class="edge" marker-end="url(#ah)" d="M620,650 H800 V560"/>
+<path class="edge" marker-end="url(#ah)" d="M800,480 V420"/>
+<path class="edge" marker-end="url(#ah)" d="M800,340 V280"/>
+<path class="edge" marker-end="url(#ah)" d="M800,200 V140"/>
+<path class="edge" marker-end="url(#ah)" d="M490,685 V755"/>
+
+<rect class="n enc" x="60" y="60" width="240" height="70" rx="9"/>
+<text class="t" x="180" y="90" text-anchor="middle">input frame</text>
+<text class="s" x="180" y="113" text-anchor="middle">320 x 192 x 3</text>
+
+<rect class="n enc" x="60" y="200" width="240" height="70" rx="9"/>
+<text class="t" x="180" y="230" text-anchor="middle">conv to 8 ch</text>
+<text class="s" x="180" y="253" text-anchor="middle">320 x 192</text>
+
+<rect class="n enc" x="60" y="340" width="240" height="70" rx="9"/>
+<text class="t" x="180" y="370" text-anchor="middle">2 convs to 16</text>
+<text class="s" x="180" y="393" text-anchor="middle">160 x 96</text>
+
+<rect class="n enc" x="60" y="480" width="240" height="70" rx="9"/>
+<text class="t" x="180" y="510" text-anchor="middle">2 convs to 24</text>
+<text class="s" x="180" y="533" text-anchor="middle">80 x 48</text>
+
+<rect class="n hinge" x="370" y="615" width="240" height="70" rx="9"/>
+<text class="t" x="490" y="645" text-anchor="middle">conv to 32 ch</text>
+<text class="s" x="490" y="668" text-anchor="middle">40 x 24, the hinge</text>
+
+<rect class="n dec" x="680" y="480" width="240" height="70" rx="9"/>
+<text class="t" x="800" y="510" text-anchor="middle">up x2, conv 16</text>
+<text class="s" x="800" y="533" text-anchor="middle">80 x 48</text>
+
+<rect class="n dec" x="680" y="340" width="240" height="70" rx="9"/>
+<text class="t" x="800" y="370" text-anchor="middle">up x2, conv 12</text>
+<text class="s" x="800" y="393" text-anchor="middle">160 x 96</text>
+
+<rect class="n dec" x="680" y="200" width="240" height="70" rx="9"/>
+<text class="t" x="800" y="230" text-anchor="middle">up x2, conv 8</text>
+<text class="s" x="800" y="253" text-anchor="middle">320 x 192</text>
+
+<rect class="n dec" x="680" y="60" width="240" height="70" rx="9"/>
+<text class="t" x="800" y="90" text-anchor="middle">1x1 seg head</text>
+<text class="s" x="800" y="113" text-anchor="middle">5 classes per pixel</text>
+
+<rect class="n dec" x="370" y="760" width="240" height="80" rx="9"/>
+<text class="t" x="490" y="792" text-anchor="middle">M1 patch head</text>
+<text class="s" x="490" y="816" text-anchor="middle">5 logits per coarse cell</text>
+
+<text class="note" x="512" y="728">alternative head, shares the trunk</text>
+</svg>

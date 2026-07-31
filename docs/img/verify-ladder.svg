@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 990 800" width="742.5" height="600" role="img" aria-labelledby="ttl dsc">
+<title id="ttl">The spotter verification ladder</title>
+<desc id="dsc">How a trained vision model becomes a claim anyone can check. The trained PyTorch
+model is exported to a weights JSON, and batch normalization is folded into the convolution
+weights on the way out, so the deployed network is plain convolutions with no normalization
+layers. That JSON then goes down two independent paths. The float path runs a numpy forward
+pass and must reproduce the stored logits to within a tolerance of 1e-4 and match the stored
+per-pixel argmax exactly. The int8 path first quantizes: weights per output channel,
+symmetric, scaled by the channel maximum over 127, and activations per tensor, symmetric,
+scaled by a percentile of the absolute activation measured on seeded calibration frames
+rather than by the maximum. Its integer forward pass must then reproduce the stored argmax
+bit for bit, agree with the float path on at least 99 percent of pixels, and hold per-class
+intersection over union at 0.98 or better against the float masks. Only when both gates pass
+does the golden bundle in the deploy directory exist. The bundle is the seam: everything
+above it is how the numbers were produced, and everything below it is anyone proving they
+reproduced them. A hardware port in C, on an FPGA, or on a phone swaps in its own forward
+implementation and runs the same verify script unchanged.</desc>
+
+<style>
+  .bg   { fill: #ffffff; }
+  .n    { stroke-width: 1.7; }
+  .src  { fill: #f6f8fa; stroke: #c9d1d9; }
+  .gate { fill: #fdf3e6; stroke: #dfae79; }
+  .ship { fill: #e8f1fb; stroke: #8fb4dc; stroke-width: 2.8; }
+  text  { font-family: Helvetica Neue; }
+  .t    { fill: #16202b; font-size: 18px; font-weight: 600; }
+  .s    { fill: #5c6773; font-size: 14px; }
+  .e    { fill: #5c6773; font-size: 14px; }
+  .note { fill: #5c6773; font-size: 14px; font-style: italic; }
+  .edge { fill: none; stroke: #7b8695; stroke-width: 1.9; }
+</style>
+
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+        orient="auto-start-reverse" markerUnits="strokeWidth">
+  <path d="M0,1 L10,5 L0,9 z" fill="context-stroke"/>
+</marker>
+
+<rect class="bg" x="0" y="0" width="990" height="800"/>
+
+<path class="edge" marker-end="url(#ah)" d="M495,140 V200"/>
+<text class="e" x="512" y="163">export</text>
+<text class="e" x="512" y="184">BN folded in</text>
+
+<path class="edge" marker-end="url(#ah)" d="M420,290 V330 H245 V370"/>
+<text class="e" x="300" y="318" text-anchor="middle">numpy forward</text>
+
+<path class="edge" marker-end="url(#ah)" d="M570,290 V330 H745 V370"/>
+<text class="e" x="690" y="318" text-anchor="middle">int8 quantize</text>
+
+<path class="edge" marker-end="url(#ah)" d="M245,500 V570 H420 V590"/>
+<path class="edge" marker-end="url(#ah)" d="M745,520 V570 H570 V590"/>
+
+<rect class="n src" x="345" y="60" width="300" height="80" rx="10"/>
+<text class="t" x="495" y="96" text-anchor="middle">trained model</text>
+<text class="s" x="495" y="120" text-anchor="middle">PyTorch, BN active</text>
+
+<rect class="n src" x="345" y="210" width="300" height="80" rx="10"/>
+<text class="t" x="495" y="246" text-anchor="middle">weights JSON</text>
+<text class="s" x="495" y="270" text-anchor="middle">plain convs, no BN</text>
+
+<rect class="n gate" x="60" y="380" width="370" height="120" rx="10"/>
+<text class="t" x="245" y="418" text-anchor="middle">float gate</text>
+<text class="s" x="245" y="446" text-anchor="middle">logits within 1e-4</text>
+<text class="s" x="245" y="470" text-anchor="middle">argmax matches 100%</text>
+
+<rect class="n gate" x="560" y="380" width="370" height="140" rx="10"/>
+<text class="t" x="745" y="418" text-anchor="middle">int8 gate</text>
+<text class="s" x="745" y="446" text-anchor="middle">weights: per-channel max</text>
+<text class="s" x="745" y="470" text-anchor="middle">activations: percentile</text>
+<text class="s" x="745" y="494" text-anchor="middle">bit-exact, IoU 0.98</text>
+
+<rect class="n ship" x="345" y="600" width="300" height="90" rx="10"/>
+<text class="t" x="495" y="638" text-anchor="middle">golden bundle</text>
+<text class="s" x="495" y="663" text-anchor="middle">deploy/</text>
+
+<text class="note" x="495" y="730" text-anchor="middle">Both gates must pass before the bundle exists.</text>
+<text class="note" x="495" y="756" text-anchor="middle">Any port reruns verify.py unchanged: C, FPGA, phone.</text>
+</svg>

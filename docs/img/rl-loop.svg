@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 440" width="825" height="330" role="img" aria-labelledby="ttl dsc">
+<title id="ttl">The reinforcement-learning loop</title>
+<desc id="dsc">A two-part cycle. The agent, a small neural network of a few thousand numbers,
+sends an action to the world: turn, thrust, or fire. The world is the orbitduel physics
+simulation, with gravity, thrust and lasers. It sends back two things on every step. The
+first is an observation, a short list of numbers describing the situation, eight of them for
+the survival task and nineteen for the duel. The second is a reward, a single number that is
+positive for winning and negative for falling into the hole. The reward is the only teacher
+in the system: nobody ever tells the agent which action was correct, so it must work that out
+from the number alone. Observation and reward arrive together in the same step, drawn
+separately here because they play different roles. One pass around this loop is one step, and
+training repeats it hundreds of thousands of times.</desc>
+
+<style>
+  .bg   { fill: #ffffff; }
+  .n    { stroke-width: 1.6; }
+  .world{ fill: #f6f8fa; stroke: #c9d1d9; }
+  .net  { fill: #e8f1fb;   stroke: #8fb4dc; }
+  text  { font-family: Helvetica Neue; }
+  .t    { fill: #16202b;   font-size: 22px; font-weight: 600; }
+  .s    { fill: #5c6773; font-size: 14px; }
+  .e    { fill: #5c6773; font-size: 14px; }
+  .es   { fill: #c98a3c;   font-size: 14px; font-weight: 600; }
+  .note { fill: #5c6773; font-size: 14px; font-style: italic; }
+  .edge { fill: none; stroke: #7b8695; stroke-width: 1.6; }
+  .signal { stroke: #c98a3c; stroke-width: 2.6; }
+</style>
+
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+        orient="auto-start-reverse" markerUnits="strokeWidth">
+  <path d="M0,1 L10,5 L0,9 z" fill="context-stroke"/>
+</marker>
+
+<rect class="bg" x="0" y="0" width="1100" height="440"/>
+
+<path class="edge" marker-end="url(#ah)" d="M240,150 V80 H860 V140"/>
+<text class="e" x="550" y="68" text-anchor="middle">action: turn, thrust, fire</text>
+
+<path class="edge" marker-end="url(#ah)" d="M710,205 H400"/>
+<text class="e" x="555" y="191" text-anchor="middle">observation: 8 or 19 numbers</text>
+
+<path class="edge signal" marker-end="url(#ah)" d="M710,262 H400"/>
+<text class="es" x="555" y="248" text-anchor="middle">reward: +1 win, -1 fall in</text>
+
+<rect class="n net" x="90" y="150" width="300" height="140" rx="12"/>
+<text class="t" x="240" y="205" text-anchor="middle">the agent</text>
+<text class="s" x="240" y="233" text-anchor="middle">a small neural net</text>
+<text class="s" x="240" y="255" text-anchor="middle">5,126 or 6,220 numbers</text>
+
+<rect class="n world" x="710" y="150" width="300" height="140" rx="12"/>
+<text class="t" x="860" y="205" text-anchor="middle">the world</text>
+<text class="s" x="860" y="233" text-anchor="middle">orbitduel physics</text>
+<text class="s" x="860" y="255" text-anchor="middle">gravity, thrust, lasers</text>
+
+<text class="note" x="550" y="360" text-anchor="middle">One trip around the loop is one step. Training takes hundreds of thousands of them.</text>
+<text class="note" x="550" y="384" text-anchor="middle">Nobody ever says which action was right. The reward is the only teacher.</text>
+</svg>

@@ -14,8 +14,10 @@ self-contained, MIT, and yours to experiment in.
 > minutes. Already fluent? Skip to [What's in the box](#whats-in-the-box) or the
 > [reward spec](docs/REWARD-SPEC.md).
 
-The longer stories behind these systems are written up at
-[jeffrey-stone.com/research](https://jeffrey-stone.com/research/).
+The longer stories behind these systems are written up in
+[the research notebooks](https://stonej-gh.github.io/research/). More of my
+work, including the game these experiments came from, lives at
+jeffrey-stone.com.
 
 ## Quickstart: the pilot
 
@@ -95,29 +97,14 @@ The two halves meet in one place: the replay JSON. Everything downstream of
 training, the viewer, the video renderer, and the spotter's own training
 data, reads that same archive.
 
-```mermaid
-flowchart LR
-  subgraph pilot["the pilot (RL)"]
-    ENV["orbitduel/<br/>physics + env"] --> TR["agents/<br/>trainers"]
-    TR --> CK["checkpoints<br/>v1 to v6"]
-    TR --> REP["replay JSONs"]
-  end
-  REP --> WATCH["viz/watch.html"]
-  REP --> REN["spotter/render.py<br/>frame + exact mask"]
-  subgraph spotter["the spotter (vision)"]
-    REN --> DS["tools/gen_dataset.py"]
-    DS --> TRN["spotter training<br/>+ export"]
-    TRN --> DEP["deploy/<br/>golden bundle"]
-    DEP --> DEMO["demo/app.py<br/>live overlay"]
-  end
-```
+![The two halves of the lab: the pilot's RL pipeline on top, the spotter's vision pipeline below, joined by the replay JSON](docs/img/two-halves.svg)
 
 ## Quickstart: the spotter
 
 The perception half is a 28,126-parameter
 [segmentation](docs/GLOSSARY.md#segmentation) net whose training data comes from
 its own renderer, so every label is free and pixel-perfect. Its story:
-[jeffrey-stone.com/research/spotter](https://jeffrey-stone.com/research/spotter/).
+[The net that watches the screen](https://stonej-gh.github.io/research/spotter/).
 
 **1. Verify the frozen bundle.** Numpy only, no training, no torch. The
 [golden](docs/GLOSSARY.md#golden-bundle) vectors prove the reference forward

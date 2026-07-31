@@ -95,16 +95,7 @@ episode cap.
 The whole machine, one picture (every box is a name in
 [GLOSSARY.md](GLOSSARY.md)):
 
-```mermaid
-flowchart LR
-  E["SurviveEnv"] -- "obs, action, reward, next" --> B["replay buffer<br/>200k steps"]
-  B -- "random batch of 128" --> L["TD loss"]
-  Q["online Q-net"] -- "picks the next action" --> L
-  T["target net<br/>frozen copy"] -- "prices that action" --> L
-  L -- "gradient step" --> Q
-  Q -- "sync every 4k steps" --> T
-  Q -- "epsilon-greedy action" --> E
-```
+![The DQN training machine: a fast acting loop and a slower learning loop joined by the replay buffer](img/dqn-machine.svg)
 
 **DIY exercise.** Reimplement DQN yourself against `SurviveEnv` (~150 lines).
 Reproduce the collapse with vanilla DQN at lr 1e-3, then fix it with Double
@@ -272,7 +263,7 @@ frameworks. In this repo that reference forward lives in
 checkpoint through it, so you can check a hand-rolled port against torch
 yourself. We used exactly this recipe to port the league champion back onto
 the original engine, running on phone hardware;
-[the worm write-up](https://jeffrey-stone.com/research/worm/) tells that
+[the worm write-up](https://stonej-gh.github.io/research/worm/) tells that
 story in full.
 
 **Transfer results.** The league champion, on the original engine vs its

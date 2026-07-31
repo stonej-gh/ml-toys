@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 720" width="780" height="540" role="img" aria-labelledby="ttl dsc">
+<title id="ttl">The two halves of the lab, and the file that joins them</title>
+<desc id="dsc">The repository is two independent halves that meet at one artifact. The pilot half
+is reinforcement learning: the orbitduel package holds the physics and the environment, the
+agents package holds the DQN, PPO and league trainers, and training produces both tracked
+checkpoints v1 through v6 and recorded replay JSON files. The replay JSON is the seam. From
+it, the browser player viz/watch.html replays an episode for a human. Also from it, the
+spotter half begins: spotter/render.py turns a replay into a frame together with an exact
+segmentation mask, since the renderer knows precisely where every object was drawn and so
+labels itself. tools/gen_dataset.py builds a seeded synthetic dataset from those frames,
+spotter training fits a small convolutional network and exports it, the deploy directory
+holds the resulting golden bundle, and demo/app.py serves a live overlay. The connection is
+worth noticing: the spotter's loader reads pilot replay JSON exactly as written, with no
+conversion step, which is the entire bridge between a policy that decides and perception that
+sees.</desc>
+
+<style>
+  .bg   { fill: #ffffff; }
+  .n    { stroke-width: 1.7; }
+  .pilot{ fill: #e8f1fb; stroke: #8fb4dc; }
+  .spot { fill: #eef6ee; stroke: #9dc39d; }
+  .seam { fill: #fdf3e6; stroke: #dfae79; stroke-width: 2.8; }
+  text  { font-family: Helvetica Neue; }
+  .t    { fill: #16202b; font-size: 17px; font-weight: 600; }
+  .s    { fill: #5c6773; font-size: 13.5px; }
+  .e    { fill: #5c6773; font-size: 14px; }
+  .band { fill: #8a94a0; font-size: 13px; font-weight: 600; letter-spacing: 1.3px; }
+  .note { fill: #5c6773; font-size: 14px; font-style: italic; }
+  .edge { fill: none; stroke: #7b8695; stroke-width: 1.9; }
+</style>
+
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+        orient="auto-start-reverse" markerUnits="strokeWidth">
+  <path d="M0,1 L10,5 L0,9 z" fill="context-stroke"/>
+</marker>
+
+<rect class="bg" x="0" y="0" width="1040" height="720"/>
+
+<text class="band" x="1010" y="52" text-anchor="end">THE PILOT &#183; REINFORCEMENT LEARNING</text>
+<text class="band" x="1010" y="432" text-anchor="end">THE SPOTTER &#183; VISION</text>
+
+<path class="edge" marker-end="url(#ah)" d="M300,120 H410"/>
+<text class="e" x="355" y="106" text-anchor="middle">physics + env</text>
+
+<path class="edge" marker-end="url(#ah)" d="M630,120 H740"/>
+<text class="e" x="685" y="106" text-anchor="middle">v1 to v6</text>
+
+<path class="edge" marker-end="url(#ah)" d="M520,160 V230"/>
+<text class="e" x="535" y="202">episodes recorded</text>
+
+<path class="edge" marker-end="url(#ah)" d="M420,270 H310"/>
+<text class="e" x="365" y="256" text-anchor="middle">just watch it</text>
+
+<path class="edge" marker-end="url(#ah)" d="M520,310 V370 H110 V450"/>
+<text class="e" x="300" y="356" text-anchor="middle">frame + exact mask</text>
+
+<path class="edge" marker-end="url(#ah)" d="M200,500 H215"/>
+<path class="edge" marker-end="url(#ah)" d="M405,500 H420"/>
+<path class="edge" marker-end="url(#ah)" d="M610,500 H625"/>
+<path class="edge" marker-end="url(#ah)" d="M815,500 H830"/>
+
+<rect class="n pilot" x="80" y="80" width="220" height="80" rx="10"/>
+<text class="t" x="190" y="115" text-anchor="middle">orbitduel/</text>
+<text class="s" x="190" y="139" text-anchor="middle">physics + environment</text>
+
+<rect class="n pilot" x="410" y="80" width="220" height="80" rx="10"/>
+<text class="t" x="520" y="115" text-anchor="middle">agents/</text>
+<text class="s" x="520" y="139" text-anchor="middle">DQN, PPO, league</text>
+
+<rect class="n pilot" x="740" y="80" width="220" height="80" rx="10"/>
+<text class="t" x="850" y="115" text-anchor="middle">checkpoints</text>
+<text class="s" x="850" y="139" text-anchor="middle">v1 to v6, tracked</text>
+
+<rect class="n pilot" x="80" y="230" width="220" height="80" rx="10"/>
+<text class="t" x="190" y="265" text-anchor="middle">viz/watch.html</text>
+<text class="s" x="190" y="289" text-anchor="middle">browser player</text>
+
+<rect class="n seam" x="410" y="230" width="220" height="80" rx="10"/>
+<text class="t" x="520" y="265" text-anchor="middle">replay JSON</text>
+<text class="s" x="520" y="289" text-anchor="middle">the seam</text>
+
+<rect class="n spot" x="20" y="450" width="180" height="100" rx="10"/>
+<text class="t" x="110" y="487" text-anchor="middle">render.py</text>
+<text class="s" x="110" y="511" text-anchor="middle">frame + mask,</text>
+<text class="s" x="110" y="531" text-anchor="middle">it labels itself</text>
+
+<rect class="n spot" x="225" y="450" width="180" height="100" rx="10"/>
+<text class="t" x="315" y="487" text-anchor="middle">gen_dataset.py</text>
+<text class="s" x="315" y="511" text-anchor="middle">seeded,</text>
+<text class="s" x="315" y="531" text-anchor="middle">synthetic</text>
+
+<rect class="n spot" x="430" y="450" width="180" height="100" rx="10"/>
+<text class="t" x="520" y="487" text-anchor="middle">training</text>
+<text class="s" x="520" y="511" text-anchor="middle">fit the CNN,</text>
+<text class="s" x="520" y="531" text-anchor="middle">then export</text>
+
+<rect class="n spot" x="635" y="450" width="180" height="100" rx="10"/>
+<text class="t" x="725" y="487" text-anchor="middle">deploy/</text>
+<text class="s" x="725" y="511" text-anchor="middle">golden</text>
+<text class="s" x="725" y="531" text-anchor="middle">bundle</text>
+
+<rect class="n spot" x="840" y="450" width="180" height="100" rx="10"/>
+<text class="t" x="930" y="487" text-anchor="middle">demo/app.py</text>
+<text class="s" x="930" y="511" text-anchor="middle">live</text>
+<text class="s" x="930" y="531" text-anchor="middle">overlay</text>
+
+<text class="note" x="520" y="640" text-anchor="middle">The spotter reads pilot replays exactly as written.</text>
+<text class="note" x="520" y="666" text-anchor="middle">There is no conversion step, and that is the whole bridge.</text>
+</svg>

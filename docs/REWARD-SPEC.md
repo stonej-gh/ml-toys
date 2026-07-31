@@ -7,15 +7,10 @@ rules of each era are a named preset, and the champion that exploited each era
 ships as a checkpoint. This document leads with the failures because they are
 the point.
 
-The whole history in one picture: each arrow is an exploit and the fix that
-ended its era.
+The whole history in one picture. The row along the top is what an agent found;
+the row below it is the rule that answered.
 
-```mermaid
-flowchart LR
-  V1["v1-freewalls<br/>free walls, fixed lanes"] -- "draw camper + wall rider<br/>fix: time cost, shaping, honest walls" --> V3["v3-rude<br/>wall spin + penalty"]
-  V3 -- "spawn ambush + burn-to-hover<br/>fix: spawn phase, fuel tank" --> V4["v4-honest<br/>fuel tank, random spawns"]
-  V4 -- "straight-laser aim lie<br/>fix: gravity on lasers" --> V6["v6-full<br/>curved lasers, shipped"]
-```
+![The four rule eras in time order, each with the exploit that forced it](img/era-ladder.svg)
 
 ## The four exploits
 

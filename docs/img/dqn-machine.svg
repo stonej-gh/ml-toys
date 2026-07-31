@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 700" width="780" height="525" role="img" aria-labelledby="ttl dsc">
+<title id="ttl">The DQN training machine for SurviveEnv</title>
+<desc id="dsc">Two loops joined by a replay buffer. In the acting loop, which runs on every
+environment step, the online Q-net chooses an epsilon-greedy action whose exploration rate
+decays from 1.0 to 0.05 over the first 150,000 steps, and SurviveEnv advances four physics
+frames and returns a transition. Each transition is stored in a replay buffer holding the
+last 200,000, where truncation at the time limit is deliberately not recorded as terminal.
+In the learning loop, which begins only after a 5,000-step warmup, a uniform random batch of
+128 transitions is drawn from the buffer and scored by a TD loss: the online net picks the
+best next action and a frozen target net prices it, the double-DQN split that curbs
+overestimation. The resulting gradient step, using Adam at learning rate 5e-4, flows back
+into the online Q-net and closes the circuit. Two slower paths hang off the online net: its
+weights are copied into the frozen target net every 4,000 steps, and every 25,000 steps the
+policy is evaluated and saved to best.pt when its median survival time and survival rate
+improve on the best seen so far.</desc>
+
+<style>
+  .bg   { fill: #ffffff; }
+  .n    { stroke-width: 1.7; }
+  .world{ fill: #f6f8fa; stroke: #c9d1d9; }
+  .net  { fill: #e8f1fb; stroke: #8fb4dc; }
+  .loss { fill: #fdf3e6; stroke: #dfae79; }
+  .frozen { stroke-dasharray: 6 4; }
+  text  { font-family: Helvetica Neue; }
+  .t    { fill: #16202b; font-size: 18px; font-weight: 600; }
+  .s    { fill: #5c6773; font-size: 14px; }
+  .e    { fill: #5c6773; font-size: 14px; }
+  .band { fill: #8a94a0; font-size: 13px; font-weight: 600; letter-spacing: 1.3px; }
+  .edge { fill: none; stroke: #7b8695; stroke-width: 1.8; }
+  .rare { stroke-dasharray: 7 5; }
+  .main { stroke-width: 2.8; }
+  .rule { stroke: #c9d1d9; stroke-width: 1; stroke-dasharray: 3 6; }
+</style>
+
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+        orient="auto-start-reverse" markerUnits="strokeWidth">
+  <path d="M0,1 L10,5 L0,9 z" fill="context-stroke"/>
+</marker>
+
+<rect class="bg" x="0" y="0" width="1040" height="700"/>
+
+<line class="rule" x1="40" y1="320" x2="1000" y2="320"/>
+<text class="band" x="1000" y="72" text-anchor="end">ACTING</text>
+<text class="band" x="1000" y="380" text-anchor="end">LEARNING</text>
+
+<path class="edge" marker-end="url(#ah)" d="M260,170 H390"/>
+<text class="e" x="325" y="155" text-anchor="middle">epsilon-greedy</text>
+<text class="e" x="325" y="192" text-anchor="middle">eps 1.0 to 0.05</text>
+<text class="e" x="325" y="211" text-anchor="middle">over 150,000</text>
+
+<path class="edge" marker-end="url(#ah)" d="M610,170 H740"/>
+<text class="e" x="675" y="155" text-anchor="middle">transition stored</text>
+<text class="e" x="675" y="192" text-anchor="middle">truncation is</text>
+<text class="e" x="675" y="211" text-anchor="middle">not terminal</text>
+
+<path class="edge" marker-end="url(#ah)" d="M860,230 V400"/>
+<text class="e" x="875" y="296">batch of 128</text>
+<text class="e" x="875" y="315">after warmup</text>
+
+<path class="edge" marker-end="url(#ah)" d="M580,460 H700"/>
+<text class="e" x="640" y="446" text-anchor="middle">prices it</text>
+
+<path class="edge main" marker-end="url(#ah)" d="M790,520 V640 H130 V240"/>
+<text class="e" x="650" y="626" text-anchor="middle">gradient step, Adam lr 5e-4</text>
+
+<path class="edge rare" marker-end="url(#ah)" d="M200,230 V350 H420 V400"/>
+<text class="e" x="310" y="338" text-anchor="middle">copy every 4,000</text>
+
+<path class="edge rare" marker-end="url(#ah)" d="M160,230 V540 H250"/>
+<text class="e" x="175" y="516">every 25,000</text>
+
+<rect class="n net" x="60" y="130" width="200" height="100" rx="10"/>
+<text class="t" x="160" y="168" text-anchor="middle">online Q-net</text>
+<text class="s" x="160" y="191" text-anchor="middle">5,126 parameters</text>
+<text class="s" x="160" y="211" text-anchor="middle">8 to 64 to 64 to 6</text>
+
+<rect class="n world" x="390" y="130" width="220" height="100" rx="10"/>
+<text class="t" x="500" y="168" text-anchor="middle">SurviveEnv</text>
+<text class="s" x="500" y="191" text-anchor="middle">4 physics frames/step</text>
+<text class="s" x="500" y="211" text-anchor="middle">600,000 steps total</text>
+
+<rect class="n world" x="740" y="130" width="220" height="100" rx="10"/>
+<text class="t" x="850" y="168" text-anchor="middle">replay buffer</text>
+<text class="s" x="850" y="191" text-anchor="middle">200,000 transitions</text>
+<text class="s" x="850" y="211" text-anchor="middle">sampled uniformly</text>
+
+<rect class="n net frozen" x="330" y="400" width="250" height="90" rx="10"/>
+<text class="t" x="455" y="437" text-anchor="middle">target net</text>
+<text class="s" x="455" y="463" text-anchor="middle">frozen copy</text>
+
+<rect class="n loss" x="700" y="400" width="260" height="120" rx="10"/>
+<text class="t" x="830" y="437" text-anchor="middle">TD loss</text>
+<text class="s" x="830" y="461" text-anchor="middle">Huber, gamma 0.99</text>
+<text class="s" x="830" y="482" text-anchor="middle">online picks,</text>
+<text class="s" x="830" y="502" text-anchor="middle">target prices</text>
+
+<rect class="n world" x="260" y="540" width="240" height="80" rx="10"/>
+<text class="t" x="380" y="573" text-anchor="middle">best.pt</text>
+<text class="s" x="380" y="596" text-anchor="middle">kept on (median, survival)</text>
+</svg>
