@@ -34,7 +34,8 @@ becomes a small integer times a scale. The crude version uses one scale per
 layer; the better version uses one scale per output row, which is the same
 idea as the spotter's per-channel scales. Then the measurement that
 actually matters: fly the real duel against the ported L10 on identical
-seeds. Measured on the phone champion, 60 episodes per arm:
+seeds. Measured on the phone champion, 60 episodes per arm (world pin
+`30f439b240a2`):
 
 | pilot | random decisions changed (of 1,000) | wins vs L10 (of 60) |
 |---|---|---|

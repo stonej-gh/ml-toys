@@ -7,7 +7,7 @@ signal appear, grow, and saturate as the opponent strengthens. No
 solution.py; the sweep is the experiment's own snippet with the level in a
 loop.
 
-## The quick look (12 episodes a cell, minutes)
+## The quick look (12 episodes a cell, minutes; world pin `30f439b240a2`)
 
 | rung | v4 straight/curved | v5 straight/curved | v6 straight/curved |
 |---|---|---|---|

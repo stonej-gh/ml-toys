@@ -52,7 +52,8 @@ compute each step's discounted return-to-go, and use
 else in the file is evaluation.
 
 Measured over 3,000 episodes (evaluated greedily on 50 fixed seeds every
-250): the eval median lifetime bounces between **1.8 s and 6.7 s** and ends
+250, world pin `30f439b240a2`): the eval median lifetime bounces between
+**1.8 s and 6.7 s** and ends
 at 2.3 s; survival flickers between 0% and 16% with no steady climb. For
 comparison, stage 1's DQN reaches a 60 s median with 70% survival inside
 75,000 steps, roughly the same amount of experience.

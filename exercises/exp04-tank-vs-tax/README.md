@@ -27,7 +27,7 @@ for rules in ("v1-freewalls", "v4-honest"):
 # EOF
 ```
 
-## What one sweep measured (seed 11, 90 updates)
+## What one sweep measured (seed 11, 90 updates, world pin `30f439b240a2`)
 
 | rules | price | median duty | median longest burn |
 |---|---|---|---|

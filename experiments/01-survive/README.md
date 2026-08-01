@@ -21,7 +21,7 @@ actions and pure coasting. Lifetimes are reported as medians because the
 distribution is bimodal (rescued-to-cap vs died-early); means lie here (see
 [docs/LEARNING-NOTES.md](../../docs/LEARNING-NOTES.md), Stage 1).
 
-**Expected result.** The shipped checkpoint
+**Expected result** (world pin `30f439b240a2`). The shipped checkpoint
 ([survive_dqn_v2](../../agents/models/survive_dqn_v2.json)), replayed through
 the dependency-free reference forward, survives to the 60 s cap in 84% of the
 50 fixed-seed episodes with a median lifetime of 60.0 s. Random's median is

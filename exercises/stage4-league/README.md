@@ -22,7 +22,8 @@ one added every 40 updates). The pool costs about ten lines.
 
 **2. Grade across the whole ladder, not the teacher.** Both nets then face
 all ten scripted rungs, 12 episodes each, none of which they trained
-against except L3. Measured on the reference platform:
+against except L3. Measured on the reference platform (world pin
+`30f439b240a2`):
 
 | arm | L1..L10 wins (of 12 each) | total |
 |---|---|---|

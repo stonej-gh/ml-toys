@@ -34,3 +34,9 @@ expect your numbers to differ in the third digit and occasionally in the
 first. When a walkthrough's numbers and yours disagree by more than the
 page says to expect, that is worth chasing: it is either a real platform
 difference or a real bug, and both are the good kind of finding.
+
+Walkthroughs whose numbers depend on the arena cite a **world pin** next to
+their tables: a digest of the physics and opponent they were measured under
+(see [tools/world_pin.py](../tools/world_pin.py)). A failing
+`tests/test_world_pin.py` means the arena has changed since a table was
+measured, and the table is due for a rerun before it is quoted.

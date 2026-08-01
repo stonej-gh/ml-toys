@@ -39,8 +39,8 @@ for fuel in (False, True):
 # EOF
 ```
 
-**Measured result (reference platform, 2026-08-01, under the ported
-opponent).** Tank off: median duty 0.69, median longest burn 1.05 s, five
+**Measured result (reference platform, 2026-08-01, world pin
+`30f439b240a2`).** Tank off: median duty 0.69, median longest burn 1.05 s, five
 wall-riding draws and a loss in six episodes. Tank forced on: duty 0.35,
 longest burn 0.15 s, and every episode becomes a loss, because the burn
 pattern the strategy depends on physically no longer exists. A reward tax
@@ -50,7 +50,7 @@ mechanics.
 
 **The shipped generation is already disciplined.** The same counters over the
 modern checkpoints (12 episodes vs the ported L7, era-matched rules,
-re-measured 2026-08-01):
+re-measured 2026-08-01, world pin `30f439b240a2`):
 
 | checkpoint | duty (median) | longest burn (median) |
 |---|---|---|

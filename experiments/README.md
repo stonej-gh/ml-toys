@@ -51,3 +51,13 @@ Two kinds of determinism, stated per grader:
 Shared plumbing lives in [exputil.py](exputil.py). Thresholds and locked
 golden values live in each `grade.py`, deliberately: an experiment should
 read whole from its own directory.
+
+One more contract: every measured table here cites a **world pin**, a short
+digest of the arena it was measured under (physics, rules, the scripted
+ladder's behavior), computed by [tools/world_pin.py](../tools/world_pin.py).
+If the world changes, `tests/test_world_pin.py` fails and names every
+document whose numbers are due for re-measurement. This exists because it
+happened: a 2026-07 opponent rewrite silently invalidated three experiments'
+tables, and the docs kept quoting them for a day. If you change the physics
+or the opponent, expect that test to go red; that is it working. Re-measure
+the named tables, then update their numbers and citations together.

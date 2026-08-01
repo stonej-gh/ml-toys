@@ -23,7 +23,7 @@ and present in both columns.
 
 The eras differ by more than one thing, so hold `v6-full` still and hand
 back ONE v3-era condition at a time (48 episodes a cell, the constructor
-kwargs override the preset):
+kwargs override the preset; world pin `30f439b240a2`):
 
 | conditions | L7 | L10 | median walls |
 |---|---|---|---|

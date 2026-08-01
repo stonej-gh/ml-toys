@@ -458,6 +458,13 @@ table overstated by.
   not a number you may publish. Stage 6 measures what skipping this costs.
 - **Watch the replays.** Both behavioral discoveries here (spray-fire, wall
   rebounds) were found by LOOKING, not by any metric.
+- **Date your claims and pin your world.** A measured number is a statement
+  about the world it was measured in, and the world changes. Every measured
+  table in the [experiments](../experiments/README.md) cites a world pin (a
+  digest of the arena, [tools/world_pin.py](../tools/world_pin.py)), and a
+  test fails naming the stale documents whenever the arena moves. We added
+  this after an opponent rewrite silently invalidated three experiments'
+  tables for a day.
 - **Tiny nets are a feature.** Full training runs take 3 to 6 minutes on a
   CPU, so every hypothesis gets tested the moment someone says it out loud.
   That loop speed, more than any single trick, is why this project moves.

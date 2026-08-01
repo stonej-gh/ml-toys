@@ -39,7 +39,7 @@ The checkpoints:
 | [duel_ppo_ported_phone](../../agents/models/duel_ppo_ported_phone.json) | league | `v6-full` | trained against the ported ladder; the tablet profile has its own, and `run.py` picks whichever matches `ORBITDUEL_FIELD` |
 
 **Expected result** (measured 2026-07-31, 48 episodes a cell, wins and median
-wall touches, every row judged under `v6-full`):
+wall touches, every row judged under `v6-full`, world pin `30f439b240a2`):
 
 | | L1 | L4 | L7 | L10 |
 |---|---|---|---|---|
@@ -87,7 +87,7 @@ that changed underneath it.
 `duel_ppo_ported_tablet` are league champions trained against the ported
 ladder, one per field profile, and they are the same trainer and the same
 recipe with only the opponent changed. Measured at 200 episodes a level on
-seeds nothing was selected on:
+seeds nothing was selected on (world pin `30f439b240a2`):
 
 | phone profile | L1 | L4 | L7 | L10 | panel |
 |---|---|---|---|---|---|

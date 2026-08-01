@@ -39,8 +39,9 @@ prices it, and a max over its own noisy estimates is always optimistic.
 Double DQN splits the jobs: the online net picks (`argmax`), the target net
 prices (`gather`). That is the whole fix.
 
-**4. What the stable recipe measures.** Double DQN at learning rate 5e-4,
-400,000 steps, evaluated greedily on 50 fixed seeds every 25,000:
+**4. What the stable recipe measures** (world pin `30f439b240a2`). Double
+DQN at learning rate 5e-4, 400,000 steps, evaluated greedily on 50 fixed
+seeds every 25,000:
 
 - learns the rescue by step 75,000 (median lifetime 60 s, survival 70%),
 - wobbles mid-run (a rough patch near step 275,000 dips to 0%),

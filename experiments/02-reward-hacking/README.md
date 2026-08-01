@@ -23,8 +23,8 @@ agent the same broken spec?
    `v1-freewalls` against a scripted L3 opponent it cannot yet beat, for 90
    seeded updates (well under a minute of CPU). Then count its wall touches.
 
-**Expected result.** The fossil (re-measured 2026-08-01 under the ported
-opponent): v1 touches walls in all 12 fixed-seed episodes, 104 touches in
+**Expected result.** The fossil (re-measured 2026-08-01, world pin
+`30f439b240a2`): v1 touches walls in all 12 fixed-seed episodes, 104 touches in
 all with a 56-touch pinball episode; v6 in the same world touches a wall
 **zero** times in 12 episodes. The habit was learned where it paid, and
 only where it paid.
@@ -33,7 +33,7 @@ The live run is the point of the experiment: with walls free and the
 opponent too strong to fight, the fresh agent discovers within seconds of
 training (60 updates train in about six seconds on a laptop) that fighting
 is pointless and stalling pays. Measured on the reference platform
-(2026-08-01, seed 2, the grader's protocol): after 90 updates the agent
+(2026-08-01, seed 2, the grader's protocol, world pin `30f439b240a2`): after 90 updates the agent
 rides the wall for a median of **13,430** contact counts per episode with
 the engine lit 99% of the time. The snapshots around it are wildly noisy:
 at 60 and 120 updates this seed expresses the same laziness as an engine-on

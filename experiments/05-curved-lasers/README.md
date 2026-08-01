@@ -43,7 +43,8 @@ for model in ("duel_ppo_v4_final.json", "duel_ppo_v5_curved.json",
 # EOF
 ```
 
-**Measured result (wins/100 vs the ported L7, measured 2026-08-01):**
+**Measured result (wins/100 vs the ported L7, measured 2026-08-01, world pin
+`30f439b240a2`):**
 
 | checkpoint | straight lasers | curved lasers | cost of straightening |
 |---|---|---|---|

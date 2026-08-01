@@ -24,7 +24,8 @@ seed sets it has never trained on: a SMALL one (12 episodes, the size of a
 typical in-training eval, and the sample an argmax would pick by) and a
 LARGER FRESH one (48 episodes) that has no say in the pick.
 
-**3. What one run measured.** On the reference platform:
+**3. What one run measured.** On the reference platform (world pin
+`30f439b240a2`):
 
 | checkpoint | small noisy sample | fresh larger sample |
 |---|---|---|
