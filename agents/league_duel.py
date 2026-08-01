@@ -28,6 +28,7 @@ Run from the repo root:   python agents/league_duel.py
 import copy
 import csv
 import json
+import os
 import random
 import sys
 import time
@@ -53,9 +54,35 @@ SCRIPTED_MIX = 0.6      # P(scripted opponent); else a pool snapshot
 PRIORITY_FLOOR = 0.1    # min sampling weight per scripted level
 EVAL_EVERY = 100
 EVAL_PANEL = (1, 4, 7, 10)
-EVAL_EPISODES = 24      # per panel level
+EVAL_EPISODES = 24      # per panel level, in-training only: this eval NOMINATES
+                        # candidates, it does not pick the winner (see below)
 RECORD_EPISODES = 1     # replays persisted per panel level per eval
 ENT_START, ENT_END = 0.02, 0.005
+
+# Checkpoint selection. A 20k-update run evaluates ~200 times, and taking the
+# argmax of 200 noisy panel means ships whichever checkpoint got the luckiest
+# eval, not the strongest policy. At 24 episodes a level the panel mean carries
+# se ~= 0.05 near 50%, so the max of 200 draws sits ~2.7 se = ~14 points above
+# the truth: enough to ship an 82% policy believing it is 96%.
+#
+# So the in-training eval only NOMINATES. It keeps the best CANDIDATES
+# checkpoints by measured mean, and after training every candidate is
+# re-evaluated on FRESH seeds at CONFIRM_EPISODES, with the winner chosen by
+# that second measurement. Selecting on one sample and reporting on another is
+# what makes the reported number honest. Both numbers go to selection.csv, so
+# the gap between them is visible rather than inferred.
+CANDIDATES = 8          # checkpoints held for confirmation
+CONFIRM_EPISODES = 60   # per panel level in the confirmation eval
+CONFIRM_SEED = 300_000  # fresh seed base: must not collide with the 80_000
+                        # in-training eval seeds or the confirmation inherits
+                        # the very sample it is meant to be independent of
+
+# Run-time overrides, same lightweight argv style as ppo_duel.py. SEED is a
+# real knob now because one league run is one sample: a champion claim wants
+# the spread across seeds, not the best single run presented alone.
+SEED = 0
+RUN_DIR = "runs/league"
+FIELD = os.environ.get("ORBITDUEL_FIELD", "phone")   # set before importing physics
 
 
 class NetOpponent:
@@ -122,17 +149,22 @@ class League:
         return NetOpponent(self.rng.choice(self.snapshots), self.fire_cone), 0
 
 
-def evaluate_panel(net, run_dir, update):
-    """Greedy vs the fixed panel; persists replays; -> (mean, {lv: win})."""
+def evaluate_panel(net, run_dir, update, episodes=EVAL_EPISODES,
+                   seed_base=80_000, opp_seed_base=70_000, keep_replays=True):
+    """Greedy vs the fixed panel; persists replays; -> (mean, {lv: win}).
+
+    seed_base and opp_seed_base are arguments so the confirmation pass can draw
+    an independent sample rather than re-running the seeds that nominated the
+    checkpoint in the first place."""
     per = {}
     rep_dir = run_dir / "replays"
     rep_dir.mkdir(parents=True, exist_ok=True)
     for lv in EVAL_PANEL:
         wins = 0
-        for ep in range(EVAL_EPISODES):
-            record = ep < RECORD_EPISODES
-            env = make_env(ScriptedPilot(lv, seed=70_000 + ep),
-                           seed=80_000 + update * 100 + lv * 10 + ep,
+        for ep in range(episodes):
+            record = keep_replays and ep < RECORD_EPISODES
+            env = make_env(ScriptedPilot(lv, seed=opp_seed_base + ep),
+                           seed=seed_base + update * 100 + lv * 10 + ep,
                            record=record)
             obs, _ = env.reset()
             total_r, outcome = 0.0, "draw"
@@ -160,27 +192,56 @@ def evaluate_panel(net, run_dir, update):
                 man = json.loads(man_path.read_text()) if man_path.exists() else []
                 man.append({"file": f"upd_{update:05d}_L{lv}.json", **meta})
                 man_path.write_text(json.dumps(man))
-        per[lv] = wins / EVAL_EPISODES
+        per[lv] = wins / episodes
     return sum(per.values()) / len(per), per
 
 
+def confirm(candidates, run_dir):
+    """Re-evaluate every nominated checkpoint on fresh seeds at CONFIRM_EPISODES
+    and pick the winner by THAT number. -> (best_state_dict, rows).
+
+    Each row is (tag, measured, confirmed, per-level), written to selection.csv
+    so the selection bias is on the record instead of being absorbed silently
+    into a headline win rate."""
+    rows, best_sd, best_conf = [], None, -1.0
+    net = ActorCritic()
+    for tag, measured, sd in candidates:
+        net.load_state_dict(sd)
+        net.eval()
+        conf, per = evaluate_panel(net, run_dir, update=0,
+                                   episodes=CONFIRM_EPISODES,
+                                   seed_base=CONFIRM_SEED,
+                                   opp_seed_base=CONFIRM_SEED + 7_000,
+                                   keep_replays=False)
+        rows.append((tag, measured, conf, per))
+        print(f"  confirm {tag:>12s}  measured {measured * 100:3.0f}%  "
+              f"confirmed {conf * 100:3.0f}%  "
+              + "  ".join(f"L{lv} {per[lv] * 100:3.0f}%" for lv in EVAL_PANEL),
+              flush=True)
+        if conf > best_conf:
+            best_conf, best_sd = conf, copy.deepcopy(sd)
+
+    with open(run_dir / "selection.csv", "w", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["checkpoint", "measured_panel", "confirmed_panel"]
+                   + [f"confirmed_L{lv}" for lv in EVAL_PANEL])
+        for tag, measured, conf, per in rows:
+            w.writerow([tag, f"{measured:.3f}", f"{conf:.3f}"]
+                       + [f"{per[lv]:.3f}" for lv in EVAL_PANEL])
+    return best_sd, rows
+
+
 def train():
-    # lightweight overrides: --run-dir X --wall-pen Y (refinement runs)
-    argv = sys.argv
-    run_name = argv[argv.index("--run-dir") + 1] if "--run-dir" in argv else "runs/league"
-    if "--wall-pen" in argv:
-        M3.WALL_PEN = float(argv[argv.index("--wall-pen") + 1])
-        print(f"wall penalty override: {M3.WALL_PEN}")
-    run_dir = Path(run_name)
+    run_dir = Path(RUN_DIR)
     run_dir.mkdir(parents=True, exist_ok=True)
-    torch.manual_seed(0)
-    random.seed(0)
+    torch.manual_seed(SEED)
+    random.seed(SEED)
     net = ActorCritic()
 
     # fresh start: the pre-thrust-cost checkpoints embody the power-hover
     # habit this run exists to price out - no warm start
     opt = torch.optim.Adam(net.parameters(), lr=M3.LR)
-    league = League(fire_cone=None, seed=0)  # cone radians set per-env below
+    league = League(fire_cone=None, seed=SEED)  # cone radians set per-env below
     league.fire_cone = make_env(ScriptedPilot(1, 0), 0).fire_cone
     league.add_snapshot(net)
 
@@ -201,6 +262,7 @@ def train():
     lcsv.writerow(["update"] + [f"win_L{lv}" for lv in EVAL_PANEL]
                   + ["panel_mean", "pool_size"])
     best = -1.0
+    cands = []  # (tag, measured panel mean, state_dict), best-measured first
     t0 = time.time()
 
     for update in range(1, TOTAL_UPDATES + 1):
@@ -283,14 +345,44 @@ def train():
                   + "/".join(f"{league.win_ema[lv]:.2f}" for lv in (1, 5, 10))
                   + f"  ({sps:.0f} steps/s, {(time.time() - t0) / 60:.1f}m)",
                   flush=True)
-            if mean > best:
-                best = mean
-                torch.save(net.state_dict(), run_dir / "best.pt")
+            # Nominate, do not decide. Keep the CANDIDATES strongest measured
+            # checkpoints; the winner is chosen later on an independent sample.
+            cands.append((f"upd{update}", mean, copy.deepcopy(net.state_dict())))
+            cands.sort(key=lambda c: c[1], reverse=True)
+            del cands[CANDIDATES:]
+            best = max(best, mean)
 
     torch.save(net.state_dict(), run_dir / "final.pt")
     export_json(net, run_dir / "final.json")
-    print(f"done in {(time.time() - t0) / 60:.1f} min; best panel {best * 100:.0f}%")
+    print(f"trained in {(time.time() - t0) / 60:.1f} min; best measured panel "
+          f"{best * 100:.0f}%", flush=True)
+
+    # The final net is always a candidate: a run can end stronger than any
+    # checkpoint its eval grid happened to sample.
+    print(f"confirming {len(cands) + 1} checkpoints at {CONFIRM_EPISODES} "
+          f"episodes a level on fresh seeds", flush=True)
+    cands.append(("final", best, net.state_dict()))
+    best_sd, rows = confirm(cands, run_dir)
+    torch.save(best_sd, run_dir / "best.pt")
+    net.load_state_dict(best_sd)
+    export_json(net, run_dir / "best.json")
+    won = max(rows, key=lambda r: r[2])
+    print(f"selected {won[0]}: measured {won[1] * 100:.0f}%, confirmed "
+          f"{won[2] * 100:.0f}% -> best.json", flush=True)
 
 
 if __name__ == "__main__":
+    _argv = sys.argv
+
+    def _opt(flag, cast, default):
+        return cast(_argv[_argv.index(flag) + 1]) if flag in _argv else default
+
+    SEED = _opt("--seed", int, SEED)
+    RUN_DIR = _opt("--run-dir", str, RUN_DIR)
+    TOTAL_UPDATES = _opt("--updates", int, TOTAL_UPDATES)
+    CONFIRM_EPISODES = _opt("--confirm-episodes", int, CONFIRM_EPISODES)
+    M3.WALL_PEN = _opt("--wall-pen", float, M3.WALL_PEN)
+    M3.THRUST_COST = _opt("--thrust-cost", float, M3.THRUST_COST)
+    print(f"seed={SEED} updates={TOTAL_UPDATES} wall_pen={M3.WALL_PEN} "
+          f"thrust_cost={M3.THRUST_COST} field={FIELD} -> {RUN_DIR}", flush=True)
     train()

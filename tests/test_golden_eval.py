@@ -3,7 +3,7 @@
 #
 # Released under the MIT License. Free to use, modify, and share.
 # Attribution appreciated; see LICENSE for details.
-"""Golden evaluation: the shipped v6 champion, played through the pure-Python
+"""Golden evaluation: shipped champions, played through the pure-Python
 reference forward (orbitduel/netpilot.py), must produce EXACTLY these outcomes
 on these seeds. Framework-free double-precision math end to end, so any
 platform that disagrees has a real defect, not a tolerance issue."""
@@ -27,10 +27,23 @@ MODELS = Path(__file__).resolve().parent.parent / "agents" / "models"
 # NOTE, and it is a real weakness: an all-loss row is a poor determinism
 # anchor. v6 now loses about 94 percent of episodes at L10, so a platform
 # that disagreed numerically would very likely still produce five losses and
-# pass. The row pins what it always pinned, exact per-seed outcomes, but the
-# discriminating power is mostly gone until this anchors on something
-# continuous (episode lengths) or on a champion that is competitive here.
+# pass. The row pins what it always pinned, exact per-seed outcomes, but its
+# discriminating power is mostly gone. The ported-champion row below is what
+# carries that job now.
 GOLDEN_V6_L10 = ["loss", "loss", "loss", "loss", "loss"]
+
+# Locked 2026-08-01. This is the anchor with teeth. The ported champion is
+# competitive against L10 rather than swept by it, so the row is a MIXED
+# sequence and every entry is a decision the physics had to get right: a
+# platform that diverged numerically would flip at least one of these long
+# before it changed a win rate. Twelve episodes rather than five for the same
+# reason, more edges to catch a divergence on.
+#
+# Every win here is a laser kill and every loss is the black hole, at a median
+# of zero wall touches, so the row also pins that the champion is winning by
+# flying rather than by the experiment 02 exploit.
+GOLDEN_PORTED_L10 = ["loss", "win", "win", "loss", "win", "win",
+                     "win", "loss", "loss", "win", "loss", "win"]
 
 
 def test_v6_vs_l10_golden(tmp_path):
@@ -38,6 +51,13 @@ def test_v6_vs_l10_golden(tmp_path):
                    episodes=5, rules="v6-full", out=tmp_path, record=0,
                    seed0=90_000)
     assert outcomes == GOLDEN_V6_L10
+
+
+def test_ported_champion_vs_l10_golden(tmp_path):
+    outcomes = run(model=str(MODELS / "duel_ppo_ported_phone.json"), level=10,
+                   episodes=12, rules="v6-full", out=tmp_path, record=0,
+                   seed0=90_000)
+    assert outcomes == GOLDEN_PORTED_L10
 
 
 def test_v6_never_loses_to_l1(tmp_path):

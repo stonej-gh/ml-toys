@@ -35,7 +35,8 @@ The checkpoints:
 | [duel_ppo_v1](../../agents/models/duel_ppo_v1.json) | curriculum ladder ([agents/ppo_duel.py](../../agents/ppo_duel.py)) | `v1-freewalls` | cleared all ten rungs in an arena where walls were free |
 | [duel_ppo_v2_L3grad](../../agents/models/duel_ppo_v2_L3grad.json) | curriculum ladder | `v3-rude` | the same trainer once walls cost something; its climb stalled, and the name records the last rung it graduated |
 | [duel_ppo_v3_league](../../agents/models/duel_ppo_v3_league.json) | league ([agents/league_duel.py](../../agents/league_duel.py)) | `v3-rude` | first league run |
-| [duel_ppo_v6_final](../../agents/models/duel_ppo_v6_final.json) | league | `v6-full` | the shipped champion |
+| [duel_ppo_v6_final](../../agents/models/duel_ppo_v6_final.json) | league | `v6-full` | the era champion, trained against the pre-port opponent |
+| [duel_ppo_ported_phone](../../agents/models/duel_ppo_ported_phone.json) | league | `v6-full` | trained against the ported ladder; the tablet profile has its own, and `run.py` picks whichever matches `ORBITDUEL_FIELD` |
 
 **Expected result** (measured 2026-07-31, 48 episodes a cell, wins and median
 wall touches, every row judged under `v6-full`):
@@ -73,13 +74,39 @@ story with the volume turned up: it is the wall-rider from
 wins 7 of 48 while still scraping 5 times an episode. An exploit generalizes
 about as well as the arena that permits it.
 
-**The limit of the claim is the L10 column.** Every checkpoint here trained
-against the scripted opponent as it stood before the 2026-07 fidelity port,
-and today's L10 flies the ported behaviour. None of them holds it. So the
-right reading of this matrix is that a league buys reach across opponents it
-was trained among, and it does not buy reach across an opponent that changed
-underneath it. Closing that gap takes a champion trained against the ported
-ladder, which is open work rather than a shipped row.
+**The limit of the claim is the L10 column.** Every checkpoint in the table
+above trained against the scripted opponent as it stood before the 2026-07
+fidelity port, and today's L10 flies the ported behaviour. None of them holds
+it. So the right reading of that matrix is that a league buys reach across
+opponents it was trained among, and it does not buy reach across an opponent
+that changed underneath it.
+
+**Which is testable, so it was tested.** `duel_ppo_ported_phone` and
+`duel_ppo_ported_tablet` are league champions trained against the ported
+ladder, one per field profile, and they are the same trainer and the same
+recipe with only the opponent changed. Measured at 200 episodes a level on
+seeds nothing was selected on:
+
+| phone profile | L1 | L4 | L7 | L10 | panel |
+|---|---|---|---|---|---|
+| v6 league champion | 198 | 170 | 118 | **19** | 63.1% |
+| ported champion | 199 | 188 | 157 | **104** | 81.0% |
+
+L10 goes from 19 wins in 200 to 104. The opponent was the gap, and the rest of
+the recipe did not have to change to close it. On the tablet profile the same
+move is smaller and less tidy: panel 63.7% to 70.0%, L10 26 to 68, but v6
+actually holds L7 slightly better than the new champion (140 against 133). One
+number moving the wrong way inside a clear overall win is the normal shape of
+a real result.
+
+**The seed spread is the part worth staring at.** Three seeds per profile, and
+on phone they landed at 63.1%, 78.3% and 79.6%. The worst of the three is
+indistinguishable from v6. Had this been trained once, the story would have
+been a coin flip between "the opponent was everything" and "nothing changed",
+decided by the seed. The tablet spread is tighter (65.8%, 68.8%, 69.2%). Any
+single-seed claim about a training change in this repo, including the ones in
+[docs/LEARNING-NOTES.md](../../docs/LEARNING-NOTES.md), should be read against
+that.
 
 **Caveats.** One training seed per trainer, and the budgets were never
 matched: [docs/LEARNING-NOTES.md](../../docs/LEARNING-NOTES.md) Stage 4

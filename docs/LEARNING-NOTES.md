@@ -305,6 +305,64 @@ cost. That curve is the whole edge-AI methodology in one plot.
 
 ---
 
+## Stage 6: fix the opponent, then fix how you pick the winner
+
+**Concepts.** Opponent fidelity as an environment property,
+[selection bias](GLOSSARY.md#selection-bias), held-out evaluation, seed
+variance.
+
+**What we built.** The scripted ladder was rewritten to fly the original
+engine's own robot logic through level 10, in seven steps, each landed and
+measured alone. Then the league champion was retrained against it, three
+seeds per field profile, and shipped as
+[`duel_ppo_ported_phone`](../agents/models/duel_ppo_ported_phone.json) and
+[`duel_ppo_ported_tablet`](../agents/models/duel_ppo_ported_tablet.json).
+Same trainer, same wall-and-thrust economics as v6. What changed was the
+opponent, and how the checkpoint was chosen.
+
+**Result.** Against the ported L10 on the phone profile, over 200 episodes a
+level: v6 wins 19, the retrained champion wins 104. Panel mean goes 63.1% to
+81.0%, at a median of zero wall touches. The tablet profile moves less (63.7%
+to 70.0%, L10 26 to 68) and v6 even holds L7 slightly better there. The
+opponent was the gap, and closing it did not need a new algorithm.
+
+**The lesson that generalizes, though, is the second fix.** The league
+trainer used to save whichever checkpoint scored highest on its periodic
+evaluation. A 20k-update run evaluates about 200 times, and the maximum of
+200 noisy estimates is not an estimate of the best checkpoint, it is an
+estimate of the luckiest one. At 24 episodes a level the panel mean carries
+a standard error near 0.05, which puts the argmax roughly 2.7 errors above
+the truth.
+
+Measured, once the trainer was changed to nominate candidates and then
+re-score them on fresh seeds: **49 of 54 candidates scored lower on the
+second sample than the first, by 6.1 points on average and 24.2 at worst.**
+In four of the six runs the old rule would have shipped a *different and
+genuinely weaker* checkpoint than the new one picked. The worst case reported
+77.1% for a checkpoint that was really 62.9%, while a 72.1% checkpoint sat
+unused in the same run. So the defect was not only inflating the number, it
+was choosing the wrong model.
+
+The fix is one sentence: **select on one sample, report on another.** It
+costs a single extra evaluation pass and it applies to any checkpoint
+selection, any hyperparameter sweep, and any early-stopping rule you have
+ever written. The same reasoning fixed the curriculum's promotion gate, where
+a rung got about 100 chances to throw one lucky eval and cross the bar.
+
+**Seed variance is the other half.** Three phone seeds landed at 63.1%,
+78.3% and 79.6%. The worst is indistinguishable from v6. Trained once, this
+result would have been a coin flip between "the opponent was everything" and
+"nothing changed", and the write-up would have sounded equally confident
+either way. Every single-seed claim in these notes should be read with that
+in mind, including the Stage 4 numbers above.
+
+**DIY exercise.** Take any training script you have with a "save best model"
+line. Re-score its top few checkpoints on a fresh seed set and plot measured
+against confirmed. The gap you find is the number your last README overstated
+by.
+
+---
+
 ## Standing habits worth copying
 
 - **One readable file per algorithm.** You can't debug what you can't see.
@@ -317,6 +375,9 @@ cost. That curve is the whole edge-AI methodology in one plot.
   hacking.
 - **Fixed eval seeds; gates decided before the run.** Moving goalposts after
   seeing results is how you fool yourself.
+- **Select on one sample, report on another.** Whatever you pick by its score
+  was partly picked for being lucky, so the score you picked it by is not a
+  number you may publish. Stage 6 measures what that costs when you skip it.
 - **Watch the replays.** Both behavioral discoveries (spray-fire, wall
   rebounds) were found by *looking*, not by any metric.
 - **Tiny nets are a feature.** Full training runs are 3-6 minutes on CPU, so

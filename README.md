@@ -78,7 +78,7 @@ python agents/dqn_survive.py
 | path | what |
 |---|---|
 | `orbitduel/` | Layer 0: stdlib physics core, `OrbitDuel-v0` [Gymnasium](docs/GLOSSARY.md#environment) env, era rule presets, scripted opponent ladder L1-L10, survive task, dependency-free policy forward |
-| `agents/` | single-file reference trainers ([DQN](docs/GLOSSARY.md#dqn), [PPO](docs/GLOSSARY.md#ppo), [league self-play](docs/GLOSSARY.md#league)) plus `duel_eval.py` and era checkpoints v1-v6 in `agents/models/` |
+| `agents/` | single-file reference trainers ([DQN](docs/GLOSSARY.md#dqn), [PPO](docs/GLOSSARY.md#ppo), [league self-play](docs/GLOSSARY.md#league)) plus `duel_eval.py`, era checkpoints v1-v6 and the ported-ladder champions in `agents/models/` |
 | `viz/` | Layer 1: replay-schema readers, browser viewer (`watch.html`), video renderer |
 | `replays/` | curated era galleries (wall rider, honest era, champion), regenerable via `tools/curate_era_replays.py` |
 | `experiments/` | graded questions: survive, reward hacking, generalization, fuel and laser ablations, spotter port ([index](experiments/README.md)) |

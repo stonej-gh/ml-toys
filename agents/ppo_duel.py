@@ -109,12 +109,16 @@ def make_env(level, seed, record=False):
                            wall_penalty=WALL_PEN, thrust_cost=THRUST_COST)
 
 
-def evaluate(net, level, run_dir, update, episodes=EVAL_EPISODES):
-    """Greedy eval; persists the first RECORD_EPISODES replays. -> (win, loss, draw)"""
+def evaluate(net, level, run_dir, update, episodes=EVAL_EPISODES,
+             seed_base=50_000, keep_replays=True):
+    """Greedy eval; persists the first RECORD_EPISODES replays. -> (win, loss, draw)
+
+    seed_base is an argument so the promotion check can draw a second,
+    independent sample instead of re-reading the one that proposed the climb."""
     wins = losses = 0
     for ep in range(episodes):
-        record = ep < RECORD_EPISODES
-        env = make_env(level, seed=50_000 + update * 100 + ep, record=record)
+        record = keep_replays and ep < RECORD_EPISODES
+        env = make_env(level, seed=seed_base + update * 100 + ep, record=record)
         obs, _ = env.reset()
         total_r, outcome = 0.0, "draw"
         while True:
@@ -254,7 +258,25 @@ def train():
             if win > best_win:  # M2's lesson: always keep the best
                 best_win = win
                 torch.save(net.state_dict(), run_dir / f"best_L{level}.pt")
+
+            # A crossing has to survive a second look. The ladder evaluates
+            # every EVAL_EVERY updates, so a rung gets ~100 chances to throw a
+            # lucky sample: at 40 episodes a genuinely 45% policy clears 60% on
+            # about 3.5% of evals, which is near certain to happen at least
+            # once per rung. Demanding that an INDEPENDENT sample clear the bar
+            # too takes that from ~97% to ~11%. The confirmation keeps no
+            # replays and does not touch best_win, so it costs one eval and
+            # changes nothing else.
+            promote = False
             if win >= ADVANCE_WIN:
+                conf, _, _ = evaluate(net, level, run_dir, update,
+                                      seed_base=600_000, keep_replays=False)
+                promote = conf >= ADVANCE_WIN
+                if not promote:
+                    print(f"  L{level} crossing not confirmed "
+                          f"({win * 100:.0f}% then {conf * 100:.0f}%), staying",
+                          flush=True)
+            if promote:
                 torch.save(net.state_dict(), run_dir / f"level_L{level}.pt")
                 export_json(net, run_dir / f"level_L{level}.json")
                 if level >= MAX_LEVEL:

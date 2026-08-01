@@ -292,6 +292,21 @@ up as great training scores and poor scores on anything new. The standard
 defenses appear on the spotter side: held-out validation data to detect it,
 and [augmentation](#augmentation) to resist it.
 
+### Selection bias
+
+Choosing something by its score and then reporting that same score. The
+number is flattered, because whatever you picked was partly picked for being
+lucky. It bites hardest when the choice is over many noisy candidates: the
+maximum of 200 noisy panel evaluations estimates the luckiest checkpoint
+rather than the best one. This repo measured its own case at 6.1 points on
+average and 24.2 at worst, and in four runs of six the biased rule also
+picked a genuinely weaker model. The fix is to select on one sample and
+report on another, which is what
+[`agents/league_duel.py`](../agents/league_duel.py)'s confirmation pass does;
+[docs/LEARNING-NOTES.md](LEARNING-NOTES.md) Stage 6 has the numbers. Related
+to [overfitting](#overfitting): both are the cost of scoring yourself on data
+you already used.
+
 ## The spotter's ladder: vision
 
 ### Images as numbers

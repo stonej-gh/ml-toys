@@ -19,6 +19,7 @@ a few minutes. Smaller n is for a quick look, not for a number worth quoting.
 """
 
 import argparse
+import os
 import sys
 from pathlib import Path
 
@@ -36,6 +37,12 @@ CHECKPOINTS = [
     ("duel_ppo_v5_curved.json", "league", "v6-full"),
     ("duel_ppo_v6_final.json", "league", "v6-full"),
 ]
+
+# The ported champions are trained per field profile against the ported L1-L10
+# ladder, so only the one matching ORBITDUEL_FIELD is meaningful here: judging
+# the tablet champion in the phone world measures the wrong thing.
+FIELD = os.environ.get("ORBITDUEL_FIELD", "phone")
+CHECKPOINTS.append((f"duel_ppo_ported_{FIELD}.json", "league", "v6-full"))
 
 
 def matrix(rows, episodes, title):
