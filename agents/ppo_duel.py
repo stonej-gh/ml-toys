@@ -39,6 +39,7 @@ import torch.nn as nn
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from orbitduel.env import OrbitDuelEnv, ACTIONS
 from orbitduel.pilot import ScriptedPilot
+from orbitduel import physics as P
 
 OBS_DIM, N_ACT = 19, len(ACTIONS)
 
@@ -153,13 +154,34 @@ def evaluate(net, level, run_dir, update, episodes=EVAL_EPISODES,
 
 
 def export_json(net, path):
+    """Write a portable policy: weights PLUS the constants its observation was
+    normalized by.
+
+    The `meta` block is not decoration. env.py's obs_from divides velocities by
+    SPAWN_V and lengths by H, and SPAWN_V is PROFILE-DEPENDENT: 298.0 on the
+    phone field, 140.49 on the tablet field. A port that rebuilds the
+    observation from its own live state has to use the same divisor the policy
+    trained under, and it cannot infer that from the weights. Ship it with them
+    or the policy reads every velocity at the wrong scale and flies drunk while
+    looking perfectly healthy.
+
+    A real instance of exactly that is on record: an iPad-profile net once
+    carried a fitted vc of 143.73 against the twin's code-exact 140.49, and the
+    2.3 percent error survived until an observation-parity audit went looking
+    for it. Absent metadata is worse than wrong metadata, because a consumer
+    that has to guess will guess the other profile's 298.0, which is off by a
+    factor of 2.12.
+    """
     layers = []
     for m in list(net.trunk) + [net.pi]:
         if isinstance(m, nn.Linear):
             layers.append({"w": m.weight.tolist(), "b": m.bias.tolist()})
     Path(path).write_text(json.dumps(
-        {"obs_dim": OBS_DIM, "actions": [list(a) for a in ACTIONS],
+        {"format": "orbitduel-pilot",
+         "obs_dim": OBS_DIM, "actions": [list(a) for a in ACTIONS],
          "hidden": HIDDEN, "activation": "tanh", "head": "argmax",
+         "meta": {"field": P.FIELD_NAME, "vc": P.SPAWN_V, "h": P.H,
+                  "field_scale": P.FIELD_SCALE, "game_speed": P.GAME_SPEED},
          "layers": layers}))
 
 

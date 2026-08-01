@@ -52,8 +52,18 @@ def obs_from(arena, idx, fuel=1.0):
     element. THIS LIST IS THE CONTRACT: any reimplementation (the deploy/
     bundle's reference forward, a microcontroller port, a shader) must match
     order, units, and signs exactly, or the policy plays subtly drunk.
+
+    The contract includes the DIVISORS, and `vc` is profile-dependent: 298.0 on
+    the phone field, 140.49 on the tablet field. A port cannot read that off the
+    weights, so exported policies carry it in `meta.vc` (agents/ppo_duel.py
+    export_json) and a port must use the exported value rather than a built-in
+    default. Getting this wrong is silent: every geometry element stays exact
+    and only the velocity elements scale, so the policy looks healthy and flies
+    badly. It has happened once already, at 2.3 percent.
+
     Elements (all roughly unit-scale):
-      0 r/h   1 vr/vc   2 vt/vc          (vc = SPAWN_V = 298 pt/s, h = 768 pt;
+      0 r/h   1 vr/vc   2 vt/vc          (vc = SPAWN_V, profile-dependent;
+                                          h = 768 pt;
       3 sin(nose-tangent) 4 cos(...)      velocities in PHYSICS-time pt/s)
       5 sin(bearing to foe, nose frame) 6 cos(...)
       7 foe alive   8 edge clearance/h

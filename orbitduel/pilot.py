@@ -22,6 +22,37 @@ arena). What's kept:
 
 The pilot returns per-frame actions (turn rad/phys s, thrust, fire) for
 Arena.step; call it every frame, one instance per ship.
+
+HOW THE LADDER IS SHAPED, and three things about it that surprise people.
+
+Every rung is one scalar `t`, linear in level, and all six duelling
+behaviours are linear in `t`. The ladder is therefore a straight line through
+behaviour space, sampled at evenly spaced points, which means level is not
+six independent knobs. It is one knob with six things bolted to it.
+
+1. Levels 1 and 2 are the SAME pilot. Identical parameters; level 1 simply
+   never fires (`passive`). So the step from 1 to 2 is categorical, the
+   opponent starts shooting at all, while 2 to 3 is a 3.5 degree change in
+   aim wobble. The first step on the ladder is the largest one and it is not
+   a difficulty setting.
+
+2. The chase is dead below `t = 0.33`, which is level 5. Levels 2 to 4 are a
+   stationary shooter and levels 5 up pursue you. That band boundary is a
+   change in KIND, not degree, and it is the second place the ladder's felt
+   difficulty jumps rather than slopes.
+
+3. The AIM_TURN_L10 / COOLDOWN_L10 / GAP_L10 constants are the `t = 1`
+   endpoints, and the top rung of this ladder sits at `t = 8/9`. They are the
+   ends of the line, not the values level 10 flies. Anyone tuning "the top of
+   the ladder" by editing them is moving a point the ladder never reaches.
+
+None of that is a defect. Difficulty that steps unevenly is ordinary, and
+agents trained here do not experience the rungs as evenly spaced anyway: two
+champion seeds measured the level 7 to 10 step 25 points apart, 5.64 standard
+errors, so the gradient belongs to the (policy, ladder) pair rather than to
+the ladder. See experiments/03-generalization for that measurement. The point
+of writing it down is that the seams are structural and visible in the code
+above, so nobody has to rediscover them from win rates.
 """
 
 import math

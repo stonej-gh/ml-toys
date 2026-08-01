@@ -23,9 +23,11 @@ import math
 import os
 
 # field profile
+FIELD_NAME = "phone"                                 # names the profile for exports
 FIELD_SCALE = 1.0                                    # 1.0 phone / 1.67 every tablet
 _ASPECT = 19.5 / 9.0                                 # tall phone; the 16:9 cap engages
 if os.environ.get("ORBITDUEL_FIELD") == "tablet":
+    FIELD_NAME = "tablet"
     FIELD_SCALE = 1.67
     _ASPECT = float(os.environ.get("ORBITDUEL_TABLET_ASPECT", 1180.0 / 820.0))
 
