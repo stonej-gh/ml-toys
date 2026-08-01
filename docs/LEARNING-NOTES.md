@@ -322,9 +322,18 @@ opponent, and how the checkpoint was chosen.
 
 **Result.** Against the ported L10 on the phone profile, over 200 episodes a
 level: v6 wins 19, the retrained champion wins 104. Panel mean goes 63.1% to
-81.0%, at a median of zero wall touches. The tablet profile moves less (63.7%
-to 70.0%, L10 26 to 68) and v6 even holds L7 slightly better there. The
-opponent was the gap, and closing it did not need a new algorithm.
+81.0%, at a median of zero wall touches. The tablet profile moves less and
+only at the top, 63.7% to 70.0% with L10 going 14.2% to 34.2%. The opponent
+was the gap, and closing it did not need a new algorithm.
+
+**Then a correction, which is the more useful half.** This section first
+reported that v6 "even holds L7 slightly better" on tablet, offered as the
+honest blemish in a good result. It was not a result. That gap was 0.75
+standard errors, and at 400 episodes with the policies paired on identical
+seeds it reads 66.0% against 65.5%, McNemar chi = 0.08. Nothing there.
+A number moving the wrong way feels like candour, so it slips past the
+scepticism a number moving the right way would have got. Test the
+disappointing ones too.
 
 **The lesson that generalizes, though, is the second fix.** The league
 trainer used to save whichever checkpoint scored highest on its periodic
@@ -355,6 +364,31 @@ result would have been a coin flip between "the opponent was everything" and
 "nothing changed", and the write-up would have sounded equally confident
 either way. Every single-seed claim in these notes should be read with that
 in mind, including the Stage 4 numbers above.
+
+**And the yardstick has its own blind spot.** The two tablet seeds tie on the
+panel mean, 0.4 points apart, so the confirmation pass had nothing to choose
+between them and effectively flipped a coin. They are not the same pilot: at
+400 paired episodes a rung, seed 1 wins 72.5% at L7 against seed 2's 65.5%,
+while seed 2 wins 34.2% at L10 against seed 1's 16.2%. Both gaps are real
+(McNemar chi 2.07 and 5.72) and they point opposite ways, so averaging four
+rungs cancels them into a tie. A mean answers "how good" and cannot answer
+"good at what".
+
+**Which exposes an assumption underneath the whole ladder.** Those two seeds
+experience the L7 to L10 step as 56.2 and 31.2 points of added difficulty, a
+gap of 5.64 standard errors. The rungs are ordered by the scripted robot's own
+parameters and that ordering was checked scripted-against-scripted, so a
+learned net owes it nothing: **how steep the ladder is depends on who is
+climbing it.** That is the [league](GLOSSARY.md#league)'s non-transitivity
+argument turning up inside what looks like a plain difficulty scale, and it is
+a candidate reason the ladder curriculum generalizes worse than the pool in
+[experiment 03](../experiments/03-generalization/README.md). A curriculum
+advances along the robot's ordering. A pool never assumes there is one.
+
+Stated carefully, because the tempting stronger claim did not survive: the
+GRADIENT is policy-dependent, and the ORDER, which rung is harder than which,
+held everywhere it was re-measured at 400 episodes. Small samples suggested
+otherwise and were wrong.
 
 **DIY exercise.** Take any training script you have with a "save best model"
 line. Re-score its top few checkpoints on a fresh seed set and plot measured

@@ -94,19 +94,73 @@ seeds nothing was selected on:
 
 L10 goes from 19 wins in 200 to 104. The opponent was the gap, and the rest of
 the recipe did not have to change to close it. On the tablet profile the same
-move is smaller and less tidy: panel 63.7% to 70.0%, L10 26 to 68, but v6
-actually holds L7 slightly better than the new champion (140 against 133). One
-number moving the wrong way inside a clear overall win is the normal shape of
-a real result.
+move is smaller and concentrated at the top: panel 63.7% to 70.0%, and L10
+from 14.2% to 34.2% measured at 400 episodes, which is a paired result at
+chi = 6.28. Below the top rungs the tablet champion and v6 are the same
+policy for practical purposes.
+
+**A worked example of not trusting your own table.** The first version of this
+page reported that v6 "holds L7 slightly better" on tablet, 140 against 133 out
+of 200, and offered it as the honest blemish inside a good result. It was not a
+result at all. That gap is 0.75 standard errors, and re-measured at 400
+episodes with the two policies paired on identical seeds it reads 66.0% against
+65.5%, McNemar chi = 0.08. There is no L7 regression. A number that moves the
+wrong way is not automatically a finding, and reporting it as one is the same
+error as reporting a lucky win rate, wearing a humbler face.
 
 **The seed spread is the part worth staring at.** Three seeds per profile, and
 on phone they landed at 63.1%, 78.3% and 79.6%. The worst of the three is
 indistinguishable from v6. Had this been trained once, the story would have
 been a coin flip between "the opponent was everything" and "nothing changed",
-decided by the seed. The tablet spread is tighter (65.8%, 68.8%, 69.2%). Any
-single-seed claim about a training change in this repo, including the ones in
-[docs/LEARNING-NOTES.md](../../docs/LEARNING-NOTES.md), should be read against
-that.
+decided by the seed. The tablet spread looks tighter (65.8%, 68.8%, 69.2%),
+and that appearance is a trap, which is the next section.
+
+**Averaging four rungs can hide two different pilots.** The tablet seeds 1 and
+2 have panel means 0.4 points apart, well inside noise, so selection picked
+between them by coin flip. They are not the same policy. At 400 episodes a
+rung, paired on identical seeds:
+
+| tablet | L7 | L10 |
+|---|---|---|
+| seed 1 | **72.5%** | 16.2% |
+| seed 2 | 65.5% | **34.2%** |
+| paired McNemar | chi = 2.07 | chi = 5.72 |
+
+Both differences are real and they point in opposite directions, so the
+four-rung average cancels them and reports a tie. Seed 2 shipped, which is
+the right champion if you care most about the hardest opponent, but nothing
+in the selection criterion knew that; it was luck. The phone seeds show no
+such split (L7 and L10 differ by 0.16 and 0.52 standard errors).
+
+**Read that table again as a statement about the ladder.** Seed 1 experiences
+the L7 to L10 step as 56.2 points of extra difficulty. Seed 2 experiences the
+same step as 31.2 points. The difference between those two gradients is 5.64
+standard errors, so it is not a sampling artifact: **how steep this ladder is
+depends on who is climbing it.**
+
+That should be less surprising than it first looks. The rungs are ordered by
+the scripted robot's own parameters, and that ordering was checked by watching
+scripted pilots meet each other. A learned net is a different kind of strategy
+and owes that ordering nothing. It is the same non-transitivity the
+[league](../../docs/GLOSSARY.md#league) exists to handle, rock beating scissors
+beating paper, showing up inside what looks like a simple difficulty scale.
+
+**What did NOT survive testing, which is the more useful half.** The obvious
+next claim is that the ORDER flips too, that some net finds a lower rung
+harder than a higher one. A 60-episode sweep of all ten rungs appears to show
+exactly that in four places. Every one of them evaporated on re-measurement:
+the strongest case, one champion reading L6 harder than L7, reads 75.2% at L6
+against 71.5% at L7 at 400 episodes, with the ladder's own order intact. The
+gradient varies by policy. Nothing here shows the order does, and the
+apparent evidence that it did was noise at small n, found while re-testing a
+different claim that had already turned out to be noise at small n.
+
+The lesson is about the yardstick rather than the seeds. A mean over a panel
+answers "how good", and it cannot answer "good at what". When two candidates
+tie on it, look at the profile before believing they are interchangeable.
+Any single-seed claim about a training change in this repo, including the ones
+in [docs/LEARNING-NOTES.md](../../docs/LEARNING-NOTES.md), should be read
+against all of this.
 
 **Caveats.** One training seed per trainer, and the budgets were never
 matched: [docs/LEARNING-NOTES.md](../../docs/LEARNING-NOTES.md) Stage 4

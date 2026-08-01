@@ -100,6 +100,12 @@ def test_league_holds_the_whole_panel():
     # v6 full champion: strong at the bottom, a monotone taper toward L10.
     # There is deliberately no floor at L10: the ported L10 beats this
     # champion, and pretending otherwise is what the re-measure removed.
+    #
+    # This taper is asserted of THIS POLICY, not of the ladder. The rungs are
+    # ordered by the scripted robot's parameters, and how steep that ordering
+    # feels depends on who is climbing: two champion seeds measured the L7 to
+    # L10 step 25 points apart, 5.64 se, so a monotone row is a property of the
+    # (policy, ladder) pair. See the README's section on the panel mean.
     v6 = row("duel_ppo_v6_final.json", "v6-full")
     print(f"duel_ppo_v6_final.json @ v6-full: {v6}")
     assert v6[1] >= 44 and v6[4] >= 38, f"v6 should own the low ladder: {v6}"
