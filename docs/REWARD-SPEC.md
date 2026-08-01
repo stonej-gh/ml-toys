@@ -137,6 +137,14 @@ constructor arguments override any preset field. The `info` dict reports
 `wall_touches`, `thrust_frames`, `longest_burn_s`, and the round-end cause,
 so every exploit above is measurable, not anecdotal.
 
+One thing the era presets do NOT capture: the opponent. The scripted ladder
+was rewritten mid-2026 to fly the original robot's own moves through L10, and
+that change sits outside the rules system on purpose, since it altered who the
+agent fights rather than what the world permits. What closing the opponent gap
+was worth, and the selection lesson learned while shipping it, are
+[LEARNING-NOTES.md](LEARNING-NOTES.md) Stage 6 and
+[experiment 03](../experiments/03-generalization/README.md).
+
 ---
 
 Where next: watch a fresh agent rediscover exploit 2 in

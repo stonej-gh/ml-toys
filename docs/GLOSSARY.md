@@ -456,7 +456,8 @@ tiny chips do well. Done after training (post-training quantization), it
 needs calibration: measuring activation ranges on sample inputs to choose the
 int8 scales. The cost here is measurably tiny: across the spotter's eight
 recorded golden frames, float and int8 disagree on 9 of 491,520 pixels, about
-one pixel per frame.
+one pixel per frame, and across the full 741-frame held-out episode on 586 of
+45.5 million ([`tools/int8_episode_diff.py`](../tools/int8_episode_diff.py)).
 [`spotter/quantize.py`](../spotter/quantize.py) documents the whole scheme.
 
 ### Golden bundle

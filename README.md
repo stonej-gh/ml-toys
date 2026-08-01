@@ -21,19 +21,19 @@ jeffrey-stone.com.
 
 ## Quickstart: the pilot
 
-**1. Watch a champion take on the top scripted bot.** No install, no compute.
+**1. Watch the champion take on the top scripted bot.** No install, no compute.
 The curated replays ship in the repo, so all you need is a local web server.
-These galleries are historical, one per rules era, and the shipped set is the
-v6 era beating the opponent as it stood then; step 2 runs the current champion
-against the opponent as it stands now:
+The default gallery is the current champion against the ported top rung, a
+genuinely close series; the picker also holds one historical gallery per rules
+era, each showing that era's champion beating the opponent as it stood then:
 
 ```
 python -m http.server 8000
 # open http://localhost:8000/viz/watch.html
-# defaults to the shipped champion episodes.
-# ?dir=replays/<era> opens another era's gallery (one directory per era
-#   in replays/); ?run=<name> follows replays that a training script is
-#   writing under runs/<name> right now.
+# defaults to the current champion vs the ported L10.
+# ?dir=replays/<era> opens a historical era's gallery (one directory per
+#   era in replays/); ?run=<name> follows replays that a training script
+#   is writing under runs/<name> right now.
 ```
 
 That is the whole duel in your browser: a trained net flying against a hand-coded
@@ -90,7 +90,7 @@ python agents/dqn_survive.py
 | `orbitduel/` | Layer 0: stdlib physics core, `OrbitDuel-v0` [Gymnasium](docs/GLOSSARY.md#environment) env, era rule presets, scripted opponent ladder L1-L10, survive task, dependency-free policy forward |
 | `agents/` | single-file reference trainers ([DQN](docs/GLOSSARY.md#dqn), [PPO](docs/GLOSSARY.md#ppo), [league self-play](docs/GLOSSARY.md#league)) plus `duel_eval.py`, era checkpoints v1-v6 and the ported-ladder champions in `agents/models/` |
 | `viz/` | Layer 1: replay-schema readers, browser viewer (`watch.html`), video renderer |
-| `replays/` | curated era galleries (wall rider, honest era, champion), regenerable via `tools/curate_era_replays.py` |
+| `replays/` | curated galleries: the current champion vs the ported L10, plus one historical gallery per era (wall rider, honest era, v6); see `tools/curate_era_replays.py` |
 | `experiments/` | graded questions: survive, reward hacking, generalization, fuel and laser ablations, spotter port ([index](experiments/README.md)) |
 | `spotter/` | the eye: seeded renderer-labeler, tiny [segmentation](docs/GLOSSARY.md#segmentation) net, training, export, [int8 quantization](docs/GLOSSARY.md#quantization) |
 | `deploy/` | the spotter's frozen golden bundle: numpy reference forward, seeded vectors, `verify.py` |

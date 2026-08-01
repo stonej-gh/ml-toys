@@ -87,17 +87,18 @@ const Q = new URLSearchParams(location.search);
 // shipped curated era. With no parameters, show the shipped champion episodes.
 const RUN = Q.get('run');
 const BASE = Q.get('dir') ? '../' + Q.get('dir')
-           : RUN ? `../runs/${RUN}` : '../replays/v6-final';
+           : RUN ? `../runs/${RUN}` : '../replays/ported-champion';
 
 // name the source in the header, and offer the curated era galleries as a
 // picker so nobody has to hand-edit the URL (the story behind each era is
-// docs/REWARD-SPEC.md)
-const ERAS = ['v3-wallrider', 'v4-honest', 'v6-final'];
+// docs/REWARD-SPEC.md; the default is the current champion vs the ported L10,
+// the three v-eras are historical)
+const ERAS = ['v3-wallrider', 'v4-honest', 'v6-final', 'ported-champion'];
 const DIR = Q.get('dir');
 document.getElementById('source').textContent =
   DIR ? `curated gallery ${DIR} (story: docs/REWARD-SPEC.md)`
       : RUN ? `live local run runs/${RUN}`
-            : 'shipped champion episodes (replays/v6-final)';
+            : 'current champion vs the ported L10 (replays/ported-champion)';
 {
   const era = document.getElementById('era');
   for (const name of ['(current view)', ...ERAS]) {

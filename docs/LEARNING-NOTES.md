@@ -218,6 +218,8 @@ drops out of the mix) and 40% a frozen snapshot of the agent's own past self. Th
 yardstick is a fixed scripted panel, so "climbing" can't be curriculum
 relabeling.
 
+![The curriculum trains against one rung at a time and a stalled climb never meets the rungs above; the league samples every scripted rung plus frozen past selves, every episode](img/ladder-vs-league.svg)
+
 **Results.** The league generalist: **98-100% vs every level, 99.0% over
 2,000 formal episodes**, with a phase transition around 8k updates from a
 noisy 50-70% band to a sustained sweep. Two caveats on those numbers: one
@@ -358,6 +360,8 @@ selection, any hyperparameter sweep, and any early-stopping rule you have
 ever written. The same reasoning fixed the curriculum's promotion gate, where
 a rung got about 100 chances to throw one lucky eval and cross the bar.
 
+![The old rule ships the luckiest of 200 noisy evaluations; the trainer now nominates candidates in training and confirms them on fresh seeds over the full ladder](img/select-confirm.svg)
+
 **Seed variance is the other half.** Three phone seeds landed at 63.1%,
 78.3% and 79.6%. The worst is indistinguishable from v6. Trained once, this
 result would have been a coin flip between "the opponent was everything" and
@@ -372,7 +376,11 @@ between them and effectively flipped a coin. They are not the same pilot: at
 while seed 2 wins 34.2% at L10 against seed 1's 16.2%. Both gaps are real
 (McNemar chi 2.07 and 5.72) and they point opposite ways, so averaging four
 rungs cancels them into a tie. A mean answers "how good" and cannot answer
-"good at what".
+"good at what". In response, the trainer's confirmation pass now walks the
+full ten-rung ladder instead of the four-rung panel, and two candidates that
+still tie inside noise resolve toward the better L10, so the criterion can at
+least see the profile it used to average away. The shipped champions predate
+that change; the next ones will be picked by it.
 
 **Which exposes an assumption underneath the whole ladder.** Those two seeds
 experience the L7 to L10 step as 56.2 and 31.2 points of added difficulty, a

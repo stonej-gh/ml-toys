@@ -64,6 +64,8 @@ mode, since every level is in the mix from the first episode. This is the
 same argument AlphaStar and OpenAI Five made for leagues, at a scale you can
 rerun on a laptop.
 
+![The curriculum trains against one rung at a time and a stalled climb never meets the rungs above; the league samples every scripted rung plus frozen past selves, every episode](../../docs/img/ladder-vs-league.svg)
+
 **Two rows worth reading sideways.** The v3 league row is the broadest the
 repo ships, and it holds L10 at 21 where the champion holds it at 3. It also
 carries a wall habit from its permissive training era (median 1.0 to 3.5
@@ -130,7 +132,11 @@ Both differences are real and they point in opposite directions, so the
 four-rung average cancels them and reports a tie. Seed 2 shipped, which is
 the right champion if you care most about the hardest opponent, but nothing
 in the selection criterion knew that; it was luck. The phone seeds show no
-such split (L7 and L10 differ by 0.16 and 0.52 standard errors).
+such split (L7 and L10 differ by 0.16 and 0.52 standard errors). The trainer
+has since been changed in response: its confirmation pass now scores the full
+ten-rung ladder, and candidates that tie inside noise resolve toward the
+better L10, so the next champion is chosen by a criterion that can see this
+split. The shipped checkpoints predate that change.
 
 **Read that table again as a statement about the ladder.** Seed 1 experiences
 the L7 to L10 step as 56.2 points of extra difficulty. Seed 2 experiences the

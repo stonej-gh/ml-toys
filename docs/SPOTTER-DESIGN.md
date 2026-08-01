@@ -141,7 +141,10 @@ evaluated alongside the clean splits.
    accumulators, recorded requantize multipliers). Measured 2026-07-08 on
    the frozen model: ≥99.99% per-pixel argmax agreement vs float,
    dataset-aggregated IoU vs float ≥0.99 every class (gates: ≥99% / ≥0.98).
-   In the demo, 2 of 61,440 overlay pixels differ on a busy frame.
+   In the demo, 2 of 61,440 overlay pixels differ on a busy frame; over the
+   full held-out episode (741 frames, measured 2026-08-01 via
+   [`tools/int8_episode_diff.py`](../tools/int8_episode_diff.py)) float and
+   int8 disagree on 586 of 45.5M pixels, worst frame 6, 333 frames identical.
 3. Training gates: M1 val acc ≥90% (per-class ≥80%): **passed** (99.6%,
    worst class 96.2%). M2 per-class IoU ≥0.70 val, ≥0.60 held-out episode,
    ≥0.50 stress: **passed** (worst class: 0.973 val, 0.965 held-out, 0.965

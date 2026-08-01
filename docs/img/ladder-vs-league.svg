@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 660" width="780" height="495" role="img" aria-labelledby="ttl dsc">
+<title id="ttl">Curriculum ladder versus league pool</title>
+<desc id="dsc">Two training designs side by side. On the left, the curriculum: the ten
+scripted opponents stand in a vertical ladder from L1 at the bottom to L10, the ported robot,
+at the top. The agent trains against exactly one rung at a time, here L3, and advances only
+by beating the rung it stands on. The rungs above the current one are drawn dashed, because a
+climb that stalls, as the v2 run stalled at L3, never meets them at all: on a ladder,
+coverage is contingent on climbing. On the right, the league: every episode samples a fresh
+opponent from a pool that holds all ten scripted rungs, weighted toward the ones the agent is
+currently losing to, at sixty percent, and frozen copies of the agent's own past selves at
+forty percent. The same network and the same PPO update are asked to be good against a
+distribution rather than against a rung, and the pool of past selves hardens as the agent
+improves. Experiment 03 measures what this difference buys.</desc>
+
+<style>
+  .bg   { fill: #ffffff; }
+  .n    { stroke-width: 1.6; }
+  .world{ fill: #f6f8fa; stroke: #c9d1d9; }
+  .net  { fill: #e8f1fb; stroke: #8fb4dc; }
+  .cur  { fill: #fdf3e7; stroke: #c98a3c; }
+  .ghost{ fill: #ffffff; stroke: #c9d1d9; stroke-dasharray: 5 4; }
+  .pool { fill: #fbfcfd; stroke: #c9d1d9; }
+  text  { font-family: Helvetica Neue; }
+  .t    { fill: #16202b; font-size: 21px; font-weight: 600; }
+  .bt   { fill: #16202b; font-size: 16px; font-weight: 600; }
+  .s    { fill: #5c6773; font-size: 14px; }
+  .gs   { fill: #98a1ab; font-size: 14px; }
+  .os   { fill: #c98a3c; font-size: 14px; font-weight: 600; }
+  .note { fill: #5c6773; font-size: 14px; font-style: italic; }
+  .edge { fill: none; stroke: #7b8695; stroke-width: 1.6; }
+  .heavy{ stroke-width: 2.8; }
+  .dash { stroke-dasharray: 5 4; }
+  .rule { stroke: #e3e7eb; stroke-width: 1.2; }
+</style>
+
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+        orient="auto-start-reverse" markerUnits="strokeWidth">
+  <path d="M0,1 L10,5 L0,9 z" fill="context-stroke"/>
+</marker>
+
+<rect class="bg" x="0" y="0" width="1040" height="660"/>
+<line class="rule" x1="530" y1="50" x2="530" y2="612"/>
+
+<text class="t" x="280" y="52" text-anchor="middle">the curriculum</text>
+<text class="s" x="280" y="85" text-anchor="middle">climb the ladder, one rung at a time</text>
+
+<rect class="n ghost" x="250" y="120" width="130" height="34" rx="7"/>
+<text class="gs" x="315" y="142" text-anchor="middle">L10</text>
+<text class="gs" x="392" y="142">the ported robot</text>
+<rect class="n ghost" x="250" y="164" width="130" height="34" rx="7"/>
+<text class="gs" x="315" y="186" text-anchor="middle">L9</text>
+<rect class="n ghost" x="250" y="208" width="130" height="34" rx="7"/>
+<text class="gs" x="315" y="230" text-anchor="middle">L8</text>
+<rect class="n ghost" x="250" y="252" width="130" height="34" rx="7"/>
+<text class="gs" x="315" y="274" text-anchor="middle">L7</text>
+<rect class="n ghost" x="250" y="296" width="130" height="34" rx="7"/>
+<text class="gs" x="315" y="318" text-anchor="middle">L6</text>
+<rect class="n ghost" x="250" y="340" width="130" height="34" rx="7"/>
+<text class="gs" x="315" y="362" text-anchor="middle">L5</text>
+<rect class="n ghost" x="250" y="384" width="130" height="34" rx="7"/>
+<text class="gs" x="315" y="406" text-anchor="middle">L4</text>
+<rect class="n cur" x="250" y="428" width="130" height="34" rx="7"/>
+<text class="bt" x="315" y="450" text-anchor="middle">L3</text>
+<rect class="n world" x="250" y="472" width="130" height="34" rx="7"/>
+<text class="s" x="315" y="494" text-anchor="middle">L2</text>
+<rect class="n world" x="250" y="516" width="130" height="34" rx="7"/>
+<text class="s" x="315" y="538" text-anchor="middle">L1</text>
+
+<text class="os" x="50" y="245">a stalled climb</text>
+<text class="os" x="50" y="267">never meets these</text>
+<path class="edge dash" marker-end="url(#ah)" d="M190,255 H242" stroke="#c98a3c"/>
+
+<rect class="n net" x="50" y="405" width="150" height="80" rx="12"/>
+<text class="bt" x="125" y="437" text-anchor="middle">the agent</text>
+<text class="s" x="125" y="459" text-anchor="middle">one opponent</text>
+<text class="s" x="125" y="477" text-anchor="middle">at a time</text>
+<path class="edge heavy" marker-end="url(#ah)" d="M200,445 H240"/>
+
+<text class="note" x="280" y="600" text-anchor="middle">whatever it learns is fitted to the rung it stands on</text>
+
+<text class="t" x="790" y="52" text-anchor="middle">the league</text>
+<text class="s" x="790" y="85" text-anchor="middle">sample the whole pool, every episode</text>
+
+<rect class="n pool" x="600" y="140" width="380" height="270" rx="12"/>
+<text class="s" x="625" y="185">scripted rungs, 60%</text>
+<text class="s" x="805" y="185">past selves, 40%</text>
+
+<rect class="n world" x="625" y="205" width="70" height="28" rx="6"/>
+<text class="s" x="660" y="224" text-anchor="middle">L1</text>
+<rect class="n world" x="625" y="240" width="70" height="28" rx="6"/>
+<text class="s" x="660" y="259" text-anchor="middle">L2</text>
+<rect class="n world" x="625" y="275" width="70" height="28" rx="6"/>
+<text class="s" x="660" y="294" text-anchor="middle">L3</text>
+<rect class="n world" x="625" y="310" width="70" height="28" rx="6"/>
+<text class="s" x="660" y="329" text-anchor="middle">L4</text>
+<rect class="n world" x="625" y="345" width="70" height="28" rx="6"/>
+<text class="s" x="660" y="364" text-anchor="middle">L5</text>
+<rect class="n world" x="705" y="205" width="70" height="28" rx="6"/>
+<text class="s" x="740" y="224" text-anchor="middle">L6</text>
+<rect class="n world" x="705" y="240" width="70" height="28" rx="6"/>
+<text class="s" x="740" y="259" text-anchor="middle">L7</text>
+<rect class="n world" x="705" y="275" width="70" height="28" rx="6"/>
+<text class="s" x="740" y="294" text-anchor="middle">L8</text>
+<rect class="n world" x="705" y="310" width="70" height="28" rx="6"/>
+<text class="s" x="740" y="329" text-anchor="middle">L9</text>
+<rect class="n world" x="705" y="345" width="70" height="28" rx="6"/>
+<text class="s" x="740" y="364" text-anchor="middle">L10</text>
+
+<rect class="n ghost" x="805" y="205" width="140" height="28" rx="6"/>
+<text class="gs" x="875" y="224" text-anchor="middle">frozen self</text>
+<rect class="n ghost" x="805" y="240" width="140" height="28" rx="6"/>
+<text class="gs" x="875" y="259" text-anchor="middle">frozen self</text>
+<rect class="n ghost" x="805" y="275" width="140" height="28" rx="6"/>
+<text class="gs" x="875" y="294" text-anchor="middle">frozen self</text>
+<rect class="n ghost" x="805" y="310" width="140" height="28" rx="6"/>
+<text class="gs" x="875" y="329" text-anchor="middle">frozen self</text>
+<text class="gs" x="805" y="366">added during training</text>
+
+<path class="edge heavy" marker-end="url(#ah)" d="M790,410 V452"/>
+<text class="s" x="805" y="430">a fresh opponent,</text>
+<text class="s" x="805" y="448">every episode</text>
+
+<rect class="n net" x="655" y="460" width="270" height="80" rx="12"/>
+<text class="bt" x="790" y="492" text-anchor="middle">the agent</text>
+<text class="s" x="790" y="516" text-anchor="middle">same net, same PPO update</text>
+
+<text class="note" x="790" y="576" text-anchor="middle">asked to be good against a distribution, not a rung</text>
+<text class="note" x="790" y="600" text-anchor="middle">its own past selves harden the pool as it improves</text>
+</svg>

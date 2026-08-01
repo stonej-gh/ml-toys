@@ -43,8 +43,9 @@ champions ship as checkpoints you can replay (the wall rider included), and
 [REWARD-SPEC.md](REWARD-SPEC.md) narrates all four failures with every
 number. The modern champion trained in a league (against every scripted
 opponent plus frozen copies of its own past selves) and swept the whole
-scripted ladder of its era; the arena's physics has since been revised, and
-the top rungs are close matches again.
+scripted ladder of its era; the arena's physics and its scripted opponent
+have since been rebuilt to match the original game's, and the top rungs are
+close matches again.
 
 ![A fresh agent's trail hugging the arena walls, beside the champion's clean orbital rings](img/wallrider-vs-champion.png)
 

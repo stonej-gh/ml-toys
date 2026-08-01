@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 775" width="750" height="581.25" role="img" aria-labelledby="ttl dsc">
+<title id="ttl">Nominate, then confirm: how the shipped checkpoint is chosen</title>
+<desc id="dsc">A training run produces about two hundred periodic panel evaluations, drawn
+here as a noisy rising curve of dots, each a 24-episode panel mean with a standard error near
+five points. One dot spikes well above its neighbours: the luckiest evaluation, not the best
+policy. The old selection rule, drawn dashed on the left, shipped the argmax of all two
+hundred means, which picks by the same noisy sample it reports: measured on this repo's
+training runs, that flattered the shipped number by 6.1 points on average, and in four runs
+of six it shipped a genuinely weaker model. The rule now in the trainer, drawn solid on the
+right, splits selection from reporting: during training the evaluations only nominate, and
+the eight best-measured candidates are held; after training, every candidate is re-scored on
+fresh seeds it was never selected on, over the full ten-rung ladder rather than a four-rung
+panel; the winner is chosen by that confirmed number, and candidates that tie inside noise
+resolve toward the better L10. One sentence covers it: select on one sample, report on
+another.</desc>
+
+<style>
+  .bg   { fill: #ffffff; }
+  .n    { stroke-width: 1.6; }
+  .plot { fill: #ffffff; stroke: #c9d1d9; }
+  .old  { fill: #f6f8fa; stroke: #c9d1d9; stroke-dasharray: 6 4; }
+  .net  { fill: #e8f1fb; stroke: #8fb4dc; }
+  text  { font-family: Helvetica Neue; }
+  .t    { fill: #16202b; font-size: 21px; font-weight: 600; }
+  .bt   { fill: #16202b; font-size: 16px; font-weight: 600; }
+  .gt   { fill: #5c6773; font-size: 16px; font-weight: 600; }
+  .s    { fill: #5c6773; font-size: 14px; }
+  .os   { fill: #c98a3c; font-size: 14px; font-weight: 600; }
+  .note { fill: #5c6773; font-size: 15px; font-style: italic; }
+  .edge { fill: none; stroke: #7b8695; stroke-width: 1.6; }
+  .blue { stroke: #8fb4dc; }
+  .heavy{ stroke-width: 2.8; }
+  .dash { stroke-dasharray: 6 4; }
+  .curve{ fill: none; stroke: #d4dae0; stroke-width: 1.4; }
+  .dot  { fill: #7b8695; }
+  .spike{ fill: #c98a3c; }
+</style>
+
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+        orient="auto-start-reverse" markerUnits="strokeWidth">
+  <path d="M0,1 L10,5 L0,9 z" fill="context-stroke"/>
+</marker>
+
+<rect class="bg" x="0" y="0" width="1000" height="775"/>
+
+<text class="t" x="500" y="38" text-anchor="middle">one training run, about 200 panel evaluations</text>
+<text class="s" x="500" y="60" text-anchor="middle">each dot is a 24-episode panel mean, standard error about 5 points</text>
+
+<rect class="n plot" x="150" y="70" width="700" height="160" rx="12"/>
+<path class="curve" d="M180,205 L214,196 L247,208 L281,188 L315,199 L349,178 L383,190 L416,170 L450,181 L484,160 L518,172 L551,152 L585,163 L618,88 L652,148 L686,136 L720,146 L753,128 L787,138 L820,124"/>
+<circle class="dot" cx="180" cy="205" r="3"/>
+<circle class="dot" cx="214" cy="196" r="3"/>
+<circle class="dot" cx="247" cy="208" r="3"/>
+<circle class="dot" cx="281" cy="188" r="3"/>
+<circle class="dot" cx="315" cy="199" r="3"/>
+<circle class="dot" cx="349" cy="178" r="3"/>
+<circle class="dot" cx="383" cy="190" r="3"/>
+<circle class="dot" cx="416" cy="170" r="3"/>
+<circle class="dot" cx="450" cy="181" r="3"/>
+<circle class="dot" cx="484" cy="160" r="3"/>
+<circle class="dot" cx="518" cy="172" r="3"/>
+<circle class="dot" cx="551" cy="152" r="3"/>
+<circle class="dot" cx="585" cy="163" r="3"/>
+<circle class="spike" cx="618" cy="88" r="5"/>
+<circle class="dot" cx="652" cy="148" r="3"/>
+<circle class="dot" cx="686" cy="136" r="3"/>
+<circle class="dot" cx="720" cy="146" r="3"/>
+<circle class="dot" cx="753" cy="128" r="3"/>
+<circle class="dot" cx="787" cy="138" r="3"/>
+<circle class="dot" cx="820" cy="124" r="3"/>
+<text class="os" x="640" y="90">the luckiest eval,</text>
+<text class="os" x="640" y="110">not the best policy</text>
+
+<path class="edge dash" marker-end="url(#ah)" d="M300,230 V322"/>
+<text class="s" x="312" y="272">pick by the same sample</text>
+<path class="edge blue heavy" marker-end="url(#ah)" d="M760,230 V292"/>
+<text class="s" x="772" y="268">hold the top 8</text>
+
+<rect class="n old" x="140" y="330" width="320" height="110" rx="12"/>
+<text class="gt" x="300" y="368" text-anchor="middle">the old rule</text>
+<text class="s" x="300" y="394" text-anchor="middle">ship the argmax</text>
+<text class="s" x="300" y="414" text-anchor="middle">of all 200 measured means</text>
+
+<text class="os" x="300" y="478" text-anchor="middle">measured: +6.1 points of flattery on average,</text>
+<text class="os" x="300" y="500" text-anchor="middle">and 4 of 6 runs shipped a weaker model</text>
+
+<rect class="n net" x="590" y="300" width="340" height="100" rx="12"/>
+<text class="bt" x="760" y="336" text-anchor="middle">nominate, in training</text>
+<text class="s" x="760" y="360" text-anchor="middle">keep the 8 best-measured candidates,</text>
+<text class="s" x="760" y="380" text-anchor="middle">decide nothing yet</text>
+
+<path class="edge blue heavy" marker-end="url(#ah)" d="M760,400 V462"/>
+<text class="s" x="772" y="436">8 candidates</text>
+
+<rect class="n net" x="590" y="470" width="340" height="120" rx="12"/>
+<text class="bt" x="760" y="506" text-anchor="middle">confirm, after training</text>
+<text class="s" x="760" y="530" text-anchor="middle">re-score every candidate on fresh seeds,</text>
+<text class="s" x="760" y="550" text-anchor="middle">60 episodes a rung,</text>
+<text class="s" x="760" y="570" text-anchor="middle">over the full ten-rung ladder</text>
+
+<path class="edge blue heavy" marker-end="url(#ah)" d="M760,590 V642"/>
+
+<rect class="n net" x="590" y="650" width="340" height="82" rx="12"/>
+<text class="bt" x="760" y="682" text-anchor="middle">ship by the confirmed number</text>
+<text class="s" x="760" y="706" text-anchor="middle">a tie inside noise resolves toward L10</text>
+
+<text class="note" x="500" y="762" text-anchor="middle">The rule in one sentence: select on one sample, report on another.</text>
+</svg>

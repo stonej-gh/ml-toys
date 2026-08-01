@@ -71,11 +71,22 @@ ENT_START, ENT_END = 0.02, 0.005
 # that second measurement. Selecting on one sample and reporting on another is
 # what makes the reported number honest. Both numbers go to selection.csv, so
 # the gap between them is visible rather than inferred.
-CANDIDATES = 8          # checkpoints held for confirmation
-CONFIRM_EPISODES = 60   # per panel level in the confirmation eval
-CONFIRM_SEED = 300_000  # fresh seed base: must not collide with the 80_000
-                        # in-training eval seeds or the confirmation inherits
-                        # the very sample it is meant to be independent of
+#
+# The confirmation walks the FULL ten-rung ladder, not the 4-rung nomination
+# panel. A mean over a small panel answers "how good" and cannot answer "good
+# at what": two tablet seeds once tied on the 4-rung mean to 0.14 se while
+# disagreeing on the L7->L10 gradient by 5.64 se, so the pass picked between
+# two genuinely different pilots by coin flip (LEARNING-NOTES Stage 6). Ten
+# rungs see the profile; and when two candidates still tie inside noise
+# (TIE_BAND, about one standard error of the confirmed mean at these n), the
+# tie resolves toward the better confirmed L10, the rung the README leads with.
+CANDIDATES = 8            # checkpoints held for confirmation
+CONFIRM_EPISODES = 60     # per ladder level in the confirmation eval
+CONFIRM_PANEL = tuple(range(1, 11))  # the full ladder: means cancel profiles
+CONFIRM_SEED = 300_000    # fresh seed base: must not collide with the 80_000
+                          # in-training eval seeds or the confirmation inherits
+                          # the very sample it is meant to be independent of
+TIE_BAND = 0.02           # confirmed means this close are a tie -> L10 decides
 
 # Run-time overrides, same lightweight argv style as ppo_duel.py. SEED is a
 # real knob now because one league run is one sample: a champion claim wants
@@ -150,16 +161,18 @@ class League:
 
 
 def evaluate_panel(net, run_dir, update, episodes=EVAL_EPISODES,
-                   seed_base=80_000, opp_seed_base=70_000, keep_replays=True):
+                   seed_base=80_000, opp_seed_base=70_000, keep_replays=True,
+                   panel=EVAL_PANEL):
     """Greedy vs the fixed panel; persists replays; -> (mean, {lv: win}).
 
     seed_base and opp_seed_base are arguments so the confirmation pass can draw
     an independent sample rather than re-running the seeds that nominated the
-    checkpoint in the first place."""
+    checkpoint in the first place; panel is an argument so that same pass can
+    walk the full ladder while the cheap in-training eval keeps its four rungs."""
     per = {}
     rep_dir = run_dir / "replays"
     rep_dir.mkdir(parents=True, exist_ok=True)
-    for lv in EVAL_PANEL:
+    for lv in panel:
         wins = 0
         for ep in range(episodes):
             record = keep_replays and ep < RECORD_EPISODES
@@ -196,14 +209,26 @@ def evaluate_panel(net, run_dir, update, episodes=EVAL_EPISODES,
     return sum(per.values()) / len(per), per
 
 
-def confirm(candidates, run_dir):
-    """Re-evaluate every nominated checkpoint on fresh seeds at CONFIRM_EPISODES
-    and pick the winner by THAT number. -> (best_state_dict, rows).
+def pick_winner(rows):
+    """The selection rule, pure so it can be asserted on without a run: best
+    confirmed ladder mean wins; candidates within TIE_BAND of the leader are a
+    tie, and a tie resolves toward the better confirmed L10. rows hold
+    (tag, measured, confirmed, {lv: win}, ...) and the rule reads only [2:4]."""
+    lead = max(r[2] for r in rows)
+    return max((r for r in rows if r[2] >= lead - TIE_BAND),
+               key=lambda r: (r[3][10], r[2]))
 
-    Each row is (tag, measured, confirmed, per-level), written to selection.csv
-    so the selection bias is on the record instead of being absorbed silently
-    into a headline win rate."""
-    rows, best_sd, best_conf = [], None, -1.0
+
+def confirm(candidates, run_dir):
+    """Re-evaluate every nominated checkpoint on fresh seeds, over the FULL
+    ladder, and pick the winner by THAT measurement. -> (best_state_dict, rows).
+
+    The winner is the best confirmed ladder mean; candidates within TIE_BAND of
+    the leader are treated as tied and the tie resolves toward the better
+    confirmed L10 (see the selection comment above). Each row is (tag, measured,
+    confirmed, per-level), written to selection.csv so the selection bias is on
+    the record instead of being absorbed silently into a headline win rate."""
+    rows = []
     net = ActorCritic()
     for tag, measured, sd in candidates:
         net.load_state_dict(sd)
@@ -212,23 +237,25 @@ def confirm(candidates, run_dir):
                                    episodes=CONFIRM_EPISODES,
                                    seed_base=CONFIRM_SEED,
                                    opp_seed_base=CONFIRM_SEED + 7_000,
-                                   keep_replays=False)
-        rows.append((tag, measured, conf, per))
+                                   keep_replays=False, panel=CONFIRM_PANEL)
+        rows.append((tag, measured, conf, per, copy.deepcopy(sd)))
         print(f"  confirm {tag:>12s}  measured {measured * 100:3.0f}%  "
               f"confirmed {conf * 100:3.0f}%  "
-              + "  ".join(f"L{lv} {per[lv] * 100:3.0f}%" for lv in EVAL_PANEL),
+              f"L7 {per[7] * 100:3.0f}%  L10 {per[10] * 100:3.0f}%",
               flush=True)
-        if conf > best_conf:
-            best_conf, best_sd = conf, copy.deepcopy(sd)
+
+    best = pick_winner(rows)
+    best_sd, best_row = best[4], best[:4]
 
     with open(run_dir / "selection.csv", "w", newline="") as f:
         w = csv.writer(f)
-        w.writerow(["checkpoint", "measured_panel", "confirmed_panel"]
-                   + [f"confirmed_L{lv}" for lv in EVAL_PANEL])
-        for tag, measured, conf, per in rows:
+        w.writerow(["checkpoint", "measured_panel", "confirmed_ladder"]
+                   + [f"confirmed_L{lv}" for lv in CONFIRM_PANEL])
+        for tag, measured, conf, per, _ in rows:
             w.writerow([tag, f"{measured:.3f}", f"{conf:.3f}"]
-                       + [f"{per[lv]:.3f}" for lv in EVAL_PANEL])
-    return best_sd, rows
+                       + [f"{per[lv]:.3f}" for lv in CONFIRM_PANEL])
+    return best_sd, best_row, [(tag, measured, conf, per)
+                               for tag, measured, conf, per, _ in rows]
 
 
 def train():
@@ -362,13 +389,13 @@ def train():
     print(f"confirming {len(cands) + 1} checkpoints at {CONFIRM_EPISODES} "
           f"episodes a level on fresh seeds", flush=True)
     cands.append(("final", best, net.state_dict()))
-    best_sd, rows = confirm(cands, run_dir)
+    best_sd, won, _ = confirm(cands, run_dir)
     torch.save(best_sd, run_dir / "best.pt")
     net.load_state_dict(best_sd)
     export_json(net, run_dir / "best.json")
-    won = max(rows, key=lambda r: r[2])
-    print(f"selected {won[0]}: measured {won[1] * 100:.0f}%, confirmed "
-          f"{won[2] * 100:.0f}% -> best.json", flush=True)
+    print(f"selected {won[0]}: measured {won[1] * 100:.0f}%, confirmed ladder "
+          f"{won[2] * 100:.0f}%, L10 {won[3][10] * 100:.0f}% -> best.json",
+          flush=True)
 
 
 if __name__ == "__main__":

@@ -49,6 +49,26 @@ def test_dqn_survive_smoke():
     assert torch.isfinite(loss)
 
 
+def test_league_selection_rule():
+    """The confirm pass's pick: ladder mean first, ties inside TIE_BAND resolve
+    toward the better confirmed L10, and the band does not let a clearly worse
+    mean win on L10 alone. Asserted here because the two tablet seeds proved a
+    mean alone picks between different pilots by coin flip (Stage 6)."""
+    from agents.league_duel import pick_winner, TIE_BAND
+
+    def row(tag, conf, l10):
+        per = {lv: conf for lv in range(1, 11)}
+        per[10] = l10
+        return (tag, conf, conf, per, None)
+
+    inside = TIE_BAND / 2
+    tied = [row("lead", 0.80, 0.30), row("split", 0.80 - inside, 0.45)]
+    assert pick_winner(tied)[0] == "split"          # in-band tie -> L10 decides
+    clear = [row("lead", 0.80, 0.30), row("l10er", 0.80 - 2 * TIE_BAND, 0.60)]
+    assert pick_winner(clear)[0] == "lead"          # out of band: mean stands
+    assert pick_winner([tied[0]])[0] == "lead"      # degenerate single row
+
+
 def test_ppo_export_roundtrip(tmp_path):
     """export_json -> PolicyNet reproduces the torch net's argmax decisions."""
     from agents.ppo_duel import ActorCritic, export_json

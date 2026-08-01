@@ -16,6 +16,16 @@ repo, their replay archives were not lifted, and the attractor does not
 reproduce under the revised physics (the same broken spec now finds the
 wall exploit instead; see experiments/02-reward-hacking).
 
+One caveat before regenerating the HISTORICAL galleries (v3/v4/v6): the
+scripted opponent is defined by today's pilot.py, which flies the ported
+robot, while those galleries were recorded against their own era's opponent.
+Re-running them replays the same checkpoints and seeds in TODAY's arena, so
+the episodes (and the v6 win-loss record) will differ from the shipped set.
+That is the current-opponent truth, not a bug, but it is a different story
+than the historical label tells; regenerate them deliberately or not at all.
+The ported-champion gallery has no such gap: its opponent is current by
+definition.
+
 Usage, from the repo root:
     python tools/curate_era_replays.py              # regenerate all galleries
     python tools/curate_era_replays.py v3-wallrider # just one
@@ -39,6 +49,8 @@ ERAS = {
                      [60_000, 60_001, 60_002, 60_003, 60_004, 60_005, 60_006, 60_007]),
     "v6-final":     ("duel_ppo_v6_final.json", "v6-full", 10,
                      [61_000, 61_001, 61_002, 61_003, 61_004, 61_005, 61_006, 61_007]),
+    "ported-champion": ("duel_ppo_ported_phone.json", "v6-full", 10,
+                     [62_000, 62_001, 62_002, 62_003, 62_004, 62_005, 62_006, 62_007]),
 }
 
 
