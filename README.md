@@ -92,6 +92,7 @@ python agents/dqn_survive.py
 | `viz/` | Layer 1: replay-schema readers, browser viewer (`watch.html`), video renderer |
 | `replays/` | curated galleries: the current champion vs the ported L10, plus one historical gallery per era (wall rider, honest era, v6); see `tools/curate_era_replays.py` |
 | `experiments/` | graded questions: survive, reward hacking, generalization, fuel and laser ablations, spotter port ([index](experiments/README.md)) |
+| `exercises/` | the back of the book: every DIY exercise walked through, with runnable sample solutions and measured results ([index](exercises/README.md)) |
 | `spotter/` | the eye: seeded renderer-labeler, tiny [segmentation](docs/GLOSSARY.md#segmentation) net, training, export, [int8 quantization](docs/GLOSSARY.md#quantization) |
 | `deploy/` | the spotter's frozen golden bundle: numpy reference forward, seeded vectors, `verify.py` |
 | `demo/` | local web demo running off the frozen bundle |

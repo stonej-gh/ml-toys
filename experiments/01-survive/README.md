@@ -58,4 +58,6 @@ In [agents/dqn_survive.py](../../agents/dqn_survive.py), replace the two
 Double DQN lines (the `a_star` pick and the `gather` that prices it) with a
 plain `tgt(nxt).max(1).values`, set `LR = 1e-3`, and retrain: the policy
 learns the rescue, then falls apart, and the grader fails as it should.
-Watching that happen teaches more than the fix ever will.
+Watching that happen teaches more than the fix ever will. The back of the
+book, with a from-scratch DQN and both runs measured, is
+[exercises/stage1-dqn](../../exercises/stage1-dqn/README.md).

@@ -19,7 +19,9 @@ The level column marks how much vocabulary a question assumes, and each README
 opens with a plain-English one-liner. New to the vocabulary itself? Start at
 [docs/START-HERE.md](../docs/START-HERE.md) and the
 [glossary](../docs/GLOSSARY.md); [02-reward-hacking](02-reward-hacking/README.md)
-is the friendliest first run. Anything that trains needs the one-time
+is the friendliest first run. Every experiment's "Break it" / "Do it
+yourself" prompt has a worked answer in
+[exercises/](../exercises/README.md), the back of the book. Anything that trains needs the one-time
 install from the [README quickstart](../README.md#quickstart-the-pilot)
 first: `python -m venv .venv` then `.venv/bin/pip install -e ".[train,viz,dev]"`.
 

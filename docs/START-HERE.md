@@ -130,7 +130,9 @@ swaps in the pinball cheater. No installation, no training, nothing to break.
 
 **Want the ideas?** Read the [glossary](GLOSSARY.md) ladders in order, then
 [LEARNING-NOTES.md](LEARNING-NOTES.md), which retells the project as six
-stages of concepts, failures, and do-it-yourself exercises.
+stages of concepts, failures, and do-it-yourself exercises. Every exercise
+has a worked answer with a runnable sample solution in
+[exercises/](../exercises/README.md), the back of the book.
 
 **Want to run something?** The [README](../README.md) quickstarts train the
 survivor and retrain the spotter from scratch. Then try the

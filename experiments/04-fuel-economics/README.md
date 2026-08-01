@@ -39,24 +39,27 @@ for fuel in (False, True):
 # EOF
 ```
 
-**Measured result (reference platform, 2026-07-30).** Tank off: median duty
-0.76, median longest burn 1.67 s, every episode a wall-riding draw. Tank
-forced on: duty 0.20, longest burn 0.37 s, and every episode becomes a loss,
-because the burn pattern the strategy depends on physically no longer
-exists. A reward tax could only have priced that thrust; the tank removes
-it, which is the design point: encode *values* in reward, but encode
-*capabilities* in mechanics.
+**Measured result (reference platform, 2026-08-01, under the ported
+opponent).** Tank off: median duty 0.69, median longest burn 1.05 s, five
+wall-riding draws and a loss in six episodes. Tank forced on: duty 0.35,
+longest burn 0.15 s, and every episode becomes a loss, because the burn
+pattern the strategy depends on physically no longer exists. A reward tax
+could only have priced that thrust; the tank removes it, which is the
+design point: encode *values* in reward, but encode *capabilities* in
+mechanics.
 
 **The shipped generation is already disciplined.** The same counters over the
-modern checkpoints (12 episodes vs L7, era-matched rules):
+modern checkpoints (12 episodes vs the ported L7, era-matched rules,
+re-measured 2026-08-01):
 
 | checkpoint | duty (median) | longest burn (median) |
 |---|---|---|
-| [duel_ppo_v3_league](../../agents/models/duel_ppo_v3_league.json) @ `v3-rude` | 0.083 | 0.33 s |
-| [duel_ppo_v6_final](../../agents/models/duel_ppo_v6_final.json) @ `v6-full` | 0.013 | 0.03 s |
+| [duel_ppo_v3_league](../../agents/models/duel_ppo_v3_league.json) @ `v3-rude` | 0.115 | 0.40 s |
+| [duel_ppo_v6_final](../../agents/models/duel_ppo_v6_final.json) @ `v6-full` | 0.007 | 0.03 s |
 
-The scripted bots' hand-tuned governor runs ~5% duty; the learned pilots sit
-in the same discipline band, the champion far under it. The economics came from translating that governor's
+The scripted bots' hand-tuned governor runs ~5% duty; v3, from the looser
+era, burns about twice that, and the champion runs far under it. The
+economics came from translating that governor's
 burn:regen ratio (0.67/s vs 0.035/s, ~19:1) into both the reward price and
 the tank, so "flies like the bots were tuned to fly" is a measured property.
 
@@ -64,4 +67,5 @@ the tank, so "flies like the bots were tuned to fly" is a measured property.
 v4-honest` (tank on from birth) and compare its duty trajectory; or sweep
 `thrust_cost` in [exputil.train_short_ppo](../exputil.py) and plot duty vs
 price to find where the tax alone stops mattering because the tank already
-binds.
+binds. The back of the book, with one sweep measured and read, is
+[exercises/exp04-tank-vs-tax](../../exercises/exp04-tank-vs-tax/README.md).

@@ -209,3 +209,5 @@ while its wall touches stay put. Which part of that is a better policy, and
 which part is an easier arena? The wall-touch column is there to help you
 answer, and the honest answer needs the [experiment
 02](../02-reward-hacking/README.md) counters, not the win column alone.
+The back of the book, with the climb decomposed one era flag at a time, is
+[exercises/exp03-break](../../exercises/exp03-break/README.md).

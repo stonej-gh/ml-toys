@@ -71,4 +71,6 @@ The whole channel budget is one constant: `WIDTHS` in
 [spotter/model.py](../../spotter/model.py). Shrink it, retrain, and rerun
 the grader to find the smallest trunk that still passes every gate; watch
 which gate fails first and which class it fails on. That curve, capacity vs
-the gates, is the sizing methodology in miniature.
+the gates, is the sizing methodology in miniature. The back of the book,
+with a measured sweep and a runnable driver, is
+[exercises/exp06-shrink](../../exercises/exp06-shrink/README.md).
