@@ -81,7 +81,7 @@ python agents/dqn_survive.py
 | `agents/` | single-file reference trainers ([DQN](docs/GLOSSARY.md#dqn), [PPO](docs/GLOSSARY.md#ppo), [league self-play](docs/GLOSSARY.md#league)) plus `duel_eval.py` and era checkpoints v1-v6 in `agents/models/` |
 | `viz/` | Layer 1: replay-schema readers, browser viewer (`watch.html`), video renderer |
 | `replays/` | curated era galleries (wall rider, honest era, champion), regenerable via `tools/curate_era_replays.py` |
-| `experiments/` | graded questions: survive, reward hacking, forgetting, fuel and laser ablations, spotter port ([index](experiments/README.md)) |
+| `experiments/` | graded questions: survive, reward hacking, generalization, fuel and laser ablations, spotter port ([index](experiments/README.md)) |
 | `spotter/` | the eye: seeded renderer-labeler, tiny [segmentation](docs/GLOSSARY.md#segmentation) net, training, export, [int8 quantization](docs/GLOSSARY.md#quantization) |
 | `deploy/` | the spotter's frozen golden bundle: numpy reference forward, seeded vectors, `verify.py` |
 | `demo/` | local web demo running off the frozen bundle |

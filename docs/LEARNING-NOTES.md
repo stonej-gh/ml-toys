@@ -149,11 +149,16 @@ Constraint-as-scaffold is a real phenomenon; we found it by watching the
 replays and reacting to what looked wrong. (One seed: outcome is fact,
 mechanism is hypothesis.)
 
-**Curriculum forgetting (sixth lesson).** The L10-specialized final net wins
-72% vs L10 but only 56% vs L1. Curricula climb; they don't retain. The fix is
-a **league** (train against a pool: past checkpoints plus all scripted
-levels). That's the Stage 4 design, and the same reason OpenAI Five and
-AlphaStar used leagues.
+**A ladder trains a narrow pilot (sixth lesson).** The curriculum only ever
+holds one opponent in front of the agent, so whatever it learns is fitted to
+the rung it is standing on. Measured on a fixed panel under one ruleset, the
+ladder checkpoint matches the league champion against the easiest opponent
+and falls off steeply above it (45/48 vs 47/48 at L1, 4/48 vs 29/48 at L7).
+The fix is a **league**: train against a pool holding all the scripted levels
+plus past checkpoints, so the agent is asked to be good against a
+distribution rather than against a rung. That is the Stage 4 design, and the
+same reason OpenAI Five and AlphaStar used leagues.
+[Experiment 03](../experiments/03-generalization/README.md) measures it.
 
 **DIY exercise.** Derive the policy-gradient theorem for a 2-action bandit on
 paper. Then implement REINFORCE (no critic, no clipping, ~60 lines) on
@@ -208,24 +213,24 @@ original self-play.
 
 **What we built.** [`agents/league_duel.py`](../agents/league_duel.py):
 every episode samples a fresh opponent, 60% a scripted level (weighted
-toward the ones we're currently LOSING to, with a floor so nothing is
-forgotten) and 40% a frozen snapshot of the agent's own past self. The eval
+toward the ones we're currently LOSING to, with a floor so no level ever
+drops out of the mix) and 40% a frozen snapshot of the agent's own past self. The eval
 yardstick is a fixed scripted panel, so "climbing" can't be curriculum
 relabeling.
 
-**Results.** Stage 2's ladder-climber forgot L1 while mastering L10 (56% vs
-72%). The league generalist: **98-100% vs every level, 99.0% over 2,000
-formal episodes**, with a phase transition around 8k updates from a noisy
-50-70% band to a sustained sweep. Two honest caveats: that is one training
-seed, and those numbers are the era's own physics, since revised; the
-shipped champion's current era-matched matrix is
-[experiment 03](../experiments/03-forgetting/README.md), where the league
-lesson now rests on the flat v3 row. And the comparison is budget-confounded:
-the curriculum run got 5,000 updates, the league 20,000 under different
-rules, so the matrix compares shipped artifacts, not matched budgets (the
-matched-budget control is an open DIY). Lesson, so hedged: **curricula
-climb, leagues retain**. The mixed pool converts "beat the current teacher"
-into "beat everyone I have ever met, including myself." The champion is `duel_ppo_v6`
+**Results.** The league generalist: **98-100% vs every level, 99.0% over
+2,000 formal episodes**, with a phase transition around 8k updates from a
+noisy 50-70% band to a sustained sweep. Two caveats on those numbers: one
+training seed, and the era's own physics, since revised. The shipped
+checkpoints' current matrix is
+[experiment 03](../experiments/03-generalization/README.md), measured under
+one common ruleset so the two trainers are compared on equal terms. The
+comparison there is budget-confounded as well: the curriculum runs got
+5,000 updates, the league 20,000, so the matrix compares shipped artifacts
+rather than matched budgets (the matched-budget control is an open DIY).
+Lesson, so hedged: **curricula climb, leagues generalize**. The mixed pool
+converts "beat the current teacher" into "beat everyone I have ever met,
+including myself." The champion is `duel_ppo_v6`
 in [`agents/models/`](../agents/models) (full ruleset: `rules="v6-full"`),
 and [`replays/v6-final`](../replays/v6-final) is its formal eval.
 
@@ -243,8 +248,8 @@ reproducing the champion's economics takes
 
 **DIY exercise.** Take your Stage 2-style trainer and add the simplest
 league: keep the last 5 checkpoints, play 50% of episodes against a random
-one. Compare forgetting curves (final policy vs L1) with and without the
-pool.
+one. Compare the two policies across the whole panel, with and without the
+pool, and watch what the spread between the easiest and hardest rung does.
 
 ---
 

@@ -59,11 +59,24 @@ HIT_R = 0.3          # shaping per hit dealt/taken (game-scored anyway)
 EPISODE_WALL_S = 90.0
 SPAWN_JITTER = 0.08
 EVAL_EVERY = 10      # updates between evals
-EVAL_EPISODES = 24
+EVAL_EPISODES = 40   # The curriculum advances on the MAXIMUM of many noisy
+                     # evals, and the max of noisy estimates overshoots the
+                     # true rate, so a small sample promotes on luck: at 24 a
+                     # genuinely 45% policy threw 15/24 often enough to climb.
+                     # More episodes shrink the noise the maximum feeds on
 RECORD_EPISODES = 3  # replays persisted per eval
 ADVANCE_WIN = 0.60   # win rate to climb a curriculum level
 START_LEVEL, MAX_LEVEL = 1, 10
 HIDDEN = 64
+
+# Run-time overrides, same lightweight argv style as league_duel.py. The
+# defaults reproduce the modern-era run. An era preset plus its prices is how
+# experiment 03's curriculum checkpoint is reproduced, which was not previously
+# expressible from this file at all:
+#   python agents/ppo_duel.py --rules v1-freewalls --wall-pen 0 --thrust-cost 0
+RULES = None         # None = modern rules; else an env.RULE_PRESETS name
+SEED = 0
+RUN_DIR = "runs/duel"
 
 
 class ActorCritic(nn.Module):
@@ -88,7 +101,7 @@ THRUST_COST = 0.05  # per wall-second lit: ~6 s of deliberate burns costs a
 
 
 def make_env(level, seed, record=False):
-    return OrbitDuelEnv(opponent=ScriptedPilot(level, seed=seed), rules=None,
+    return OrbitDuelEnv(opponent=ScriptedPilot(level, seed=seed), rules=RULES,
                            hit_reward=HIT_R, spawn_jitter=SPAWN_JITTER,
                            max_wall_seconds=EPISODE_WALL_S, seed=seed,
                            record=record, pot_coef=POT_COEF,
@@ -147,10 +160,10 @@ def export_json(net, path):
 
 
 def train():
-    run_dir = Path("runs/duel")
+    run_dir = Path(RUN_DIR)
     run_dir.mkdir(parents=True, exist_ok=True)
-    torch.manual_seed(0)
-    random.seed(0)
+    torch.manual_seed(SEED)
+    random.seed(SEED)
     net = ActorCritic()
     opt = torch.optim.Adam(net.parameters(), lr=LR)
     level = START_LEVEL
@@ -260,4 +273,17 @@ def train():
 
 
 if __name__ == "__main__":
+    _argv = sys.argv
+
+    def _opt(flag, cast, default):
+        return cast(_argv[_argv.index(flag) + 1]) if flag in _argv else default
+
+    RULES = _opt("--rules", str, RULES)
+    SEED = _opt("--seed", int, SEED)
+    RUN_DIR = _opt("--run-dir", str, RUN_DIR)
+    WALL_PEN = _opt("--wall-pen", float, WALL_PEN)
+    THRUST_COST = _opt("--thrust-cost", float, THRUST_COST)
+    TOTAL_UPDATES = _opt("--updates", int, TOTAL_UPDATES)
+    print(f"rules={RULES} seed={SEED} wall_pen={WALL_PEN} "
+          f"thrust_cost={THRUST_COST} -> {RUN_DIR}", flush=True)
     train()

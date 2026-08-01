@@ -233,17 +233,18 @@ lets you re-create it live in about a minute of CPU.
 ### Curriculum
 
 Training against a ladder of opponents, easiest first, advancing on wins.
-Curricula climb fast and forget what they left behind: this repo's
-ladder-climber beat the top scripted bot while losing ground against the
-easiest one. [experiments/03-forgetting](../experiments/03-forgetting/README.md)
-measures the effect in a matrix of exact numbers.
+Curricula climb fast, and what they produce is fitted to the rung the agent
+is standing on: this repo's ladder checkpoints match the league champion
+against the easiest opponent and fall off steeply above it.
+[experiments/03-generalization](../experiments/03-generalization/README.md)
+measures the gap in a matrix of exact numbers.
 
 ### League
 
-The fix for curriculum forgetting: train against a pool holding every
+The fix for a ladder's narrow coverage: train against a pool holding every
 scripted opponent plus frozen snapshots of the agent's own past selves
 (self-play). Strategy quality is not a single ladder (rock beats scissors
-beats paper), so retention has to be trained, and the pool converts "beat the
+beats paper), so breadth has to be trained, and the pool converts "beat the
 current teacher" into "beat everyone I have ever met, including myself".
 [`agents/league_duel.py`](../agents/league_duel.py) built this repo's
 champion.

@@ -4,16 +4,18 @@
 #
 # Released under the MIT License. Free to use, modify, and share.
 # Attribution appreciated; see LICENSE for details.
-"""M4: league self-play: one generalist instead of a forgetful ladder-climber.
+"""M4: league self-play: one generalist instead of a narrow ladder-climber.
 
-Extends the M3 PPO (imported from ppo_duel) with an OPPONENT LEAGUE, the fix
-for curriculum forgetting (same reason OpenAI Five / AlphaStar used leagues):
+Extends the M3 PPO (imported from ppo_duel) with an OPPONENT LEAGUE, so the
+agent is trained against a distribution of opponents rather than against
+whichever rung it currently stands on (the same reason OpenAI Five and
+AlphaStar used leagues). Measured in experiments/03-generalization:
 
 - Pool = all ten scripted pilot levels + frozen snapshots of the agent itself
   (a snapshot joins every SNAP_EVERY updates; the pool keeps a spread).
 - Each env samples a fresh opponent per episode: SCRIPTED_MIX of the time a
   scripted level (prioritized toward the ones the agent is losing to, with a
-  floor so nothing is forgotten), else a uniform pool snapshot.
+  floor so no level ever drops out of the mix), else a uniform pool snapshot.
 - Net opponents fly ship 1 through the same 19-float observation (mirrored
   seat) and the same fire cone (symmetric rules, no seat advantage).
 - Eval is a fixed scripted panel (L1/L4/L7/L10, greedy, fixed seeds); the

@@ -32,9 +32,11 @@ if os.environ.get("ORBITDUEL_FIELD") == "tablet":
 # clocks and arena
 FPS = 60.0                                           # frames per wall second
 
-# tablet keeps wall-clock pace on its bigger orbit (Kepler r^1.5) with the
-# game's 20% tablet calm-down: 0.5 * 1.67^1.5 * 0.80
-GAME_SPEED = 0.5 * pow(FIELD_SCALE, 1.5) * (0.80 if FIELD_SCALE > 1 else 1.0)
+# the tablet runs its clock in proportion to the field, 0.5 x 1.67, and the
+# phone falls out of the same rule. Read off tablet hardware as 0.835000, and
+# every wall-clocked constant below (DT, the turn ceiling, laser TTL, fire
+# cooldown) is derived from this one number.
+GAME_SPEED = 0.5 * FIELD_SCALE                       # 0.5 phone / 0.835 tablet
 DT = GAME_SPEED / FPS                                # physics seconds per frame
 H = 768.0                                            # reference field height (pt)
 MAX_PLAY_ASPECT = 16.0 / 9.0                         # arena width cap (phones are wider)
@@ -50,7 +52,7 @@ SPAWN_V = math.sqrt(GM / SPAWN_R)                    # circular speed at spawn: 
 SHIP_MASS = 0.03
 SHIP_R_AGENT = 37.52 / FIELD_SCALE                   # fighter hull (seat 0), wider circle
 SHIP_R_OPP = 27.16 / FIELD_SCALE                     # interceptor hull (seat 1), slimmer
-SHIP_R = SHIP_R_AGENT                                # single-radius fallback (wall margins)
+SHIP_R = SHIP_R_AGENT                                # fighter alias; survive.py's lone ship is seat 0
 THRUST_ACCEL = (20.0 / SHIP_MASS) / FIELD_SCALE      # 666.67 pt/s^2 along the nose
 TURN_RATE = 4.0                                      # agent's discrete turn rate (rad/phys s)
 MAX_TURN_RATE = 4.0 * math.pi / GAME_SPEED           # scripted slew cap: 2 rev/wall s

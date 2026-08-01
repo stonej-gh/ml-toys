@@ -151,7 +151,7 @@ def gate_fire(arena, idx, f, cone):
     # hole-in-the-way check on the shot's TRUE path (ship velocity + muzzle
     # along the nose): closed-form nearest approach for straight lasers, a
     # forward-sim under the field when the arena's lasers curve.
-    px, py = s0.x + nx * SHIP_R_GUARD, s0.y + ny * SHIP_R_GUARD
+    px, py = s0.x + nx * s0.laser_off, s0.y + ny * s0.laser_off
     vx = s0.vx + nx * P.LASER_SPEED
     vy = s0.vy + ny * P.LASER_SPEED
     range_ = math.hypot(dx, dy)
@@ -178,9 +178,6 @@ def gate_fire(arena, idx, f, cone):
     if math.hypot(cx, cy) < P.HOLE_R * 1.05:
         return 0
     return f
-
-
-SHIP_R_GUARD = P.SHIP_R  # conservative muzzle offset for the hole-shot guard
 
 
 # Named era rule-sets (see module docstring). Values are constructor kwargs;
