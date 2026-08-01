@@ -60,6 +60,30 @@ def test_ported_champion_vs_l10_golden(tmp_path):
     assert outcomes == GOLDEN_PORTED_L10
 
 
+def test_the_quickstart_default_actually_wins(tmp_path):
+    """`python agents/duel_eval.py` with no arguments must beat the top rung.
+
+    The README promises a champion taking on the top scripted bot and then hands
+    a first-time reader exactly this command. That promise was silently false
+    for a while: the default pointed at the v6 era champion, and once the
+    opponent was ported to the game's own robot, the repo's first command
+    printed nine straight losses. Nothing caught it, because every other test
+    names its model explicitly and so never exercises the DEFAULT.
+
+    This asserts the wiring, not the policy. It reads DEFAULT_MODEL and the
+    parser's own defaults rather than restating them, so pointing the default at
+    a checkpoint that cannot clear the top rung fails here.
+    """
+    import agents.duel_eval as D
+
+    outcomes = run(model=str(D.DEFAULT_MODEL), level=10, episodes=9,
+                   rules="v6-full", out=tmp_path, record=0, seed0=90_000)
+    wins, losses = outcomes.count("win"), outcomes.count("loss")
+    assert wins > losses, (
+        f"the quickstart's default loses to L10: {wins}W/{losses}L with "
+        f"{Path(D.DEFAULT_MODEL).name}")
+
+
 def test_v6_never_loses_to_l1(tmp_path):
     outcomes = run(model=str(MODELS / "duel_ppo_v6_final.json"), level=1,
                    episodes=5, rules="v6-full", out=tmp_path, record=0,

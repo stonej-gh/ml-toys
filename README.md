@@ -21,8 +21,11 @@ jeffrey-stone.com.
 
 ## Quickstart: the pilot
 
-**1. Watch the champion beat the top scripted bot.** No install, no compute. The
-curated replays ship in the repo, so all you need is a local web server:
+**1. Watch a champion take on the top scripted bot.** No install, no compute.
+The curated replays ship in the repo, so all you need is a local web server.
+These galleries are historical, one per rules era, and the shipped set is the
+v6 era beating the opponent as it stood then; step 2 runs the current champion
+against the opponent as it stands now:
 
 ```
 python -m http.server 8000
@@ -43,13 +46,20 @@ python -m venv .venv
 .venv/bin/pip install -e ".[train,viz,dev]"
 ```
 
-**2. Re-run that match yourself.** Play goes through a pure-Python
+**2. Run the current champion yourself.** Play goes through a pure-Python
 [reference forward pass](docs/GLOSSARY.md#train-vs-inference) (no ML
 framework needed), so the outcome is identical on any platform:
 
 ```
 python agents/duel_eval.py
 ```
+
+Expect a close match, around five wins in nine. The top rung is a port of the
+game's own robot and it is genuinely hard; a champion that swept it would mean
+the opponent was too easy. Add `--model agents/models/duel_ppo_v6_final.json`
+to watch the previous era's champion meet the same bot, which it loses to about
+nine times in ten. That gap is [experiment
+03](experiments/03-generalization/README.md).
 
 **3. Watch an agent that learned to cheat.** This is the wall-riding champion
 from an early era, put back in the broken world it exploited, with the counters

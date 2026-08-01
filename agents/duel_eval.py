@@ -10,8 +10,9 @@ Python reference forward (orbitduel/netpilot.py), so results are bit-identical
 on every platform - this script is also the golden-eval anchor in tests/.
 
 Examples, from the repo root:
-    python agents/duel_eval.py                          # v6 champ vs L10, 9 eps
+    python agents/duel_eval.py                     # current champion vs L10
     python agents/duel_eval.py --level 4 --episodes 24
+    python agents/duel_eval.py --model agents/models/duel_ppo_v6_final.json
     python agents/duel_eval.py --model agents/models/duel_ppo_v3_league.json \
         --rules v3-rude --out runs/rude
 
@@ -28,8 +29,18 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from orbitduel.env import OrbitDuelEnv
 from orbitduel.netpilot import PolicyNet
 from orbitduel.pilot import ScriptedPilot
+from orbitduel import physics as P
 
-DEFAULT_MODEL = Path(__file__).parent / "models" / "duel_ppo_v6_final.json"
+# The default is the CURRENT champion, matched to the field profile, because
+# the README tells a first-time reader to run this with no arguments right after
+# promising they will watch the champion take on the top scripted bot. It used
+# to default to v6, which was the champion of the v6 ERA and is not the champion
+# of this ladder: against the ported L10 it wins about 1 game in 10, so the
+# quickstart's first command printed nine straight losses. Era checkpoints are
+# still here and still the story LEARNING-NOTES tells; they are just not the
+# thing to hand someone as "the champion" any more.
+DEFAULT_MODEL = (Path(__file__).parent / "models" /
+                 f"duel_ppo_ported_{P.FIELD_NAME}.json")
 
 
 def run(model, level, episodes, rules, out, record, seed0):
