@@ -43,8 +43,13 @@ For the steps that run Python, install the package first (Python 3.10+):
 
 ```
 python -m venv .venv
-.venv/bin/pip install -e ".[train,viz,dev]"
+.venv/bin/pip install -e ".[train,viz,spotter,dev]"
+source .venv/bin/activate      # so the plain `python` below is this venv
 ```
+
+That install covers every command in this README. Training alone needs only
+`".[train,viz,dev]"`; the `spotter` extra adds the web stack the
+[demo](#quickstart-the-spotter) serves itself from.
 
 **2. Run the current champion yourself.** Play goes through a pure-Python
 [reference forward pass](docs/GLOSSARY.md#train-vs-inference) (no ML
@@ -126,7 +131,8 @@ python deploy/verify.py
 ```
 
 **2. See it watch a duel.** A live overlay with a float/int8 A/B toggle, running
-off the frozen bundle:
+off the frozen bundle. Needs the `spotter` extra from the
+[install above](#quickstart-the-pilot) (it serves the overlay over HTTP):
 
 ```
 python demo/app.py    # http://127.0.0.1:5051
