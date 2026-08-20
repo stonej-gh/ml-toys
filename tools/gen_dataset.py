@@ -12,7 +12,7 @@ seeded random scenes (coverage) with recorded replay frames (realistic duel
 correlations); val/test are disjoint seed ranges; test additionally holds out
 one entire replay episode the train split never sees.
 
-Usage (from the repo root, .venv active or via .venv/bin/python):
+Usage (from the repo root, with the virtual environment activated):
     python tools/gen_dataset.py                  # default sizes -> data/derived
     python tools/gen_dataset.py --train-n 4000
 """

@@ -12,10 +12,10 @@ title card per episode (update, opponent level, outcome), and hands the frame
 stream to ffmpeg on stdin. Re-runnable any time; the archive is the source of
 truth, videos are derived artifacts.
 
-Usage (from ml/):
-    .venv/bin/python viz/render_video.py --all -o duel-documentary.mp4
-    .venv/bin/python viz/render_video.py --highlights -o duel-highlights.mp4
-    .venv/bin/python viz/render_video.py --files upd_00120_ep0.json ... -o clip.mp4
+Usage (from the repo root):
+    python viz/render_video.py --all -o duel-documentary.mp4
+    python viz/render_video.py --highlights -o duel-highlights.mp4
+    python viz/render_video.py --files upd_00120_ep0.json ... -o clip.mp4
     add --speed 2 to double playback speed
 
 --highlights picks the story beats automatically: the first recorded episode,

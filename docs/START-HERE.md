@@ -123,10 +123,11 @@ about.
 
 ## Where to go next
 
-**Just want to watch?** From the repo root, run `python -m http.server 8000`,
-then open `http://localhost:8000/viz/watch.html`. That is the champion
-against the top scripted bot, and `?dir=replays/v3-wallrider` in the URL bar
-swaps in the pinball cheater. No installation, no training, nothing to break.
+**Just want to watch?** Do the one-time [README setup](../README.md#setup),
+then from the repo root run `python -m http.server 8000` and open
+`http://localhost:8000/viz/watch.html`. That is the champion against the top
+scripted bot, and `?dir=replays/v3-wallrider` in the URL bar swaps in the
+pinball cheater. Nothing to install, nothing to train, nothing to break.
 
 **Want the ideas?** Read the [glossary](GLOSSARY.md) ladders in order, then
 [LEARNING-NOTES.md](LEARNING-NOTES.md), which retells the project as six

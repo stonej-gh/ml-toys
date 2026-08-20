@@ -10,7 +10,7 @@ Everything the viewer sees runs through the EXPORTED JSON via the pure-numpy
 reference forward - the demo exercises the same artifact a hardware target
 would consume, not the PyTorch model.
 
-    .venv/bin/python demo/app.py            # -> http://127.0.0.1:5051
+    python demo/app.py                      # -> http://127.0.0.1:5051
 
 Modes (button cycles): float dense masks (default), INT8 dense masks (the
 A/B beat - you shouldn't be able to tell), coarse M1 heatmap, off.

@@ -26,10 +26,12 @@ since the 2026-07 opponent port: the ported top rung beats every era
 checkpoint under either ballistics (v5 and v6 hold 0-4% there), and an
 ablation cannot show its signal in a column of zeros. Pure-Python inference
 on fixed seeds; 100 episodes a cell, because this is a statistical claim,
-not an exact-outcome pin.
+not an exact-outcome pin. From the repo root, paste the whole block into your
+shell; it takes a few minutes (on Windows, start `python`, paste the lines
+between the `EOF` markers, and press Enter):
 
-```python
-# python - <<'EOF'   (from the repo root; a few minutes)
+```
+python - <<'EOF'
 import sys
 sys.path.insert(0, "experiments")
 import exputil as X
@@ -40,7 +42,7 @@ for model in ("duel_ppo_v4_final.json", "duel_ppo_v5_curved.json",
         st = X.duel_stats(X.MODELS / model, 7, 100, "v4-honest",
                           gravity_on_lasers=curved)
         print(f"{model:26s} curved={curved}: wins {X.wins(st):3d}/100")
-# EOF
+EOF
 ```
 
 **Measured result (wins/100 vs the ported L7, measured 2026-08-01, world pin

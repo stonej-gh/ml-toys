@@ -22,10 +22,13 @@ aesthetic. The cleanest subject is a policy that *wants* to burn forever: the
 fresh wall-rider from experiment 02 trains in a no-fuel world and finishes
 with its engine mostly lit (median duty 0.76). Evaluate it with the tank off,
 then force the tank on: the `fuel=True` constructor kwarg overrides the era
-preset.
+preset. Run [experiments/02's run.py](../02-reward-hacking/README.md) first;
+it writes the `runs/exp02-wallrider/` checkpoint this reads. Then, from the
+repo root, paste the whole block into your shell (on Windows, start `python`,
+paste the lines between the `EOF` markers, and press Enter):
 
-```python
-# python - <<'EOF'   (from the repo root, after experiments/02's run.py)
+```
+python - <<'EOF'
 import sys, statistics
 sys.path.insert(0, "experiments")
 import exputil as X
@@ -36,7 +39,7 @@ for fuel in (False, True):
     print(f"fuel={fuel}: duty {statistics.median(s['duty'] for s in st):.2f}  "
           f"longest burn {statistics.median(s['longest_burn_s'] for s in st):.2f}s  "
           f"outcomes {[s['outcome'] for s in st]}")
-# EOF
+EOF
 ```
 
 **Measured result (reference platform, 2026-08-01, world pin

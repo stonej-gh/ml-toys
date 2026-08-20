@@ -26,8 +26,10 @@ The seven stage exercises follow
 | [exp06-shrink](exp06-shrink/README.md) | exp 06 Shrink-it | yes | the width sweep: capacity fails one class at a time |
 
 Ground rules, same as everywhere in the lab: the solutions run from the repo
-root after the [README quickstart](../README.md#quickstart-the-pilot)
-install (stage 0 needs no install at all), every number quoted in a
+root, inside the activated environment from the
+[README setup](../README.md#setup), after the
+[quickstart](../README.md#quickstart-the-pilot) install (stage 0 needs no
+install at all), every number quoted in a
 walkthrough was produced by the command next to it, and training results are
 deterministic per machine but only threshold-comparable across machines, so
 expect your numbers to differ in the third digit and occasionally in the

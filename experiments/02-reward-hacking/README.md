@@ -51,10 +51,9 @@ laziness emerged at every seed and level we tried.
 against the shipped champion's (right). Regenerate from your own run with
 [tools/plot_trajectories.py](../../tools/plot_trajectories.py).*
 
-**Watch your cheater fly.** The live run trains with torch, so it needs the
-training install from the [README quickstart](../../README.md#quickstart-the-pilot)
-first: `python -m venv .venv` then `.venv/bin/pip install -e ".[train,viz,dev]"`.
-The run records replays:
+**Watch your cheater fly.** The live run trains with torch, so from the
+activated environment in the [README setup](../../README.md#setup) it needs
+`pip install -e ".[train,viz,dev]"`. The run records replays:
 
 ```
 python experiments/02-reward-hacking/run.py       # train + eval + replays

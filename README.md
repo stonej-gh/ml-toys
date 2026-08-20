@@ -19,9 +19,38 @@ The longer stories behind these systems are written up in
 work, including the game these experiments came from, lives at
 jeffrey-stone.com.
 
+## Setup
+
+Every command in this repo runs from the repo root inside an activated virtual
+environment, so `python` always means this project's interpreter. Do this once.
+You need Python 3.10 or newer; macOS ships an older one, so install a current
+Python from python.org or Homebrew if `python3 --version` says 3.9.
+
+macOS and Linux:
+
+```
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+Windows (PowerShell or Command Prompt):
+
+```
+py -m venv .venv
+.venv\Scripts\activate
+```
+
+If PowerShell refuses to run the activation script, use Command Prompt
+instead; Windows ships a script-execution policy that blocks it by default.
+
+Your prompt now starts with `(.venv)`, and every command below assumes it. The
+first step needs nothing further. The steps that train or evaluate also need the
+package, installed in the next block.
+
 ## Quickstart: the pilot
 
-**1. Watch the champion take on the top scripted bot.** No install, no compute.
+**1. Watch the champion take on the top scripted bot.** No package install, no
+compute.
 The curated replays ship in the repo, so all you need is a local web server.
 The default gallery is the current champion against the ported top rung, a
 genuinely close series; the picker also holds one historical gallery per rules
@@ -39,12 +68,16 @@ python -m http.server 8000
 That is the whole duel in your browser: a trained net flying against a hand-coded
 opponent. Everything below re-creates and retrains what you just watched.
 
-For the steps that run Python, install the package first (Python 3.10+):
+For the steps that follow, install the package into the venv from
+[Setup](#setup):
 
 ```
-python -m venv .venv
-.venv/bin/pip install -e ".[train,viz,dev]"
+pip install -e ".[train,viz,spotter,dev]"
 ```
+
+That covers every command in this README. Training alone needs only
+`".[train,viz,dev]"`; the `spotter` extra adds the web stack the
+[demo](#quickstart-the-spotter) serves itself from.
 
 **2. Run the current champion yourself.** Play goes through a pure-Python
 [reference forward pass](docs/GLOSSARY.md#train-vs-inference) (no ML
@@ -66,8 +99,7 @@ from an early era, put back in the broken world it exploited, with the counters
 that caught it:
 
 ```
-python agents/duel_eval.py --model agents/models/duel_ppo_v1.json \
-    --rules v1-freewalls --level 10
+python agents/duel_eval.py --model agents/models/duel_ppo_v1.json --rules v1-freewalls --level 10
 # then compare: viz/watch.html?dir=replays/v3-wallrider
 ```
 
@@ -126,7 +158,8 @@ python deploy/verify.py
 ```
 
 **2. See it watch a duel.** A live overlay with a float/int8 A/B toggle, running
-off the frozen bundle:
+off the frozen bundle. Needs the `spotter` extra from the
+[install above](#quickstart-the-pilot) (it serves the overlay over HTTP):
 
 ```
 python demo/app.py    # http://127.0.0.1:5051
@@ -137,9 +170,12 @@ five minutes end to end on a laptop:
 
 ```
 python tools/gen_dataset.py
-python -m spotter.train_heatmap && python -m spotter.export
-python -m spotter.train_dense   && python -m spotter.export --mode dense
-python tools/build_bundle.py && python deploy/verify.py
+python -m spotter.train_heatmap
+python -m spotter.export
+python -m spotter.train_dense
+python -m spotter.export --mode dense
+python tools/build_bundle.py
+python deploy/verify.py
 ```
 
 Design notes and the five recorded lessons:
@@ -162,7 +198,7 @@ python -m pytest -m grade_cheap -q     # run every grader
 ## Tests
 
 ```
-.venv/bin/python -m pytest tests/ -q
+python -m pytest tests/ -q
 ```
 
 Golden evaluations are exact-match rather than tolerance-based: the shipped v6

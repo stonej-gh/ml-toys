@@ -4,10 +4,12 @@ The back of the book for the do-it-yourself in
 [experiments/04-fuel-economics](../../experiments/04-fuel-economics/README.md):
 sweep the thrust price and find where the tax stops mattering because the
 tank already binds. No solution.py; the whole sweep is the snippet below,
-about two minutes a row.
+about two minutes a row. From the repo root, paste the whole block into your
+shell (on Windows, start `python`, paste the lines between the `EOF` markers,
+and press Enter):
 
-```python
-# python - <<'EOF'   (from the repo root)
+```
+python - <<'EOF'
 import statistics, sys, tempfile
 from pathlib import Path
 sys.path.insert(0, "experiments")
@@ -24,7 +26,7 @@ for rules in ("v1-freewalls", "v4-honest"):
         print(rules, price,
               statistics.median(s["duty"] for s in st),
               statistics.median(s["longest_burn_s"] for s in st))
-# EOF
+EOF
 ```
 
 ## What one sweep measured (seed 11, 90 updates, world pin `30f439b240a2`)

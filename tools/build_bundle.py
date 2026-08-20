@@ -6,7 +6,7 @@
 # Attribution appreciated; see LICENSE for details.
 """Assemble (or reproduce) the deploy/ golden bundle from the M2 artifacts.
 
-    .venv/bin/python tools/build_bundle.py          # then: python deploy/verify.py
+    python tools/build_bundle.py                    # then: python deploy/verify.py
 
 Deterministic end to end: the frozen float JSON is copied verbatim, int8
 calibration frames and golden frames are chosen by SEED, the renderer is

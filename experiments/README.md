@@ -21,9 +21,10 @@ opens with a plain-English one-liner. New to the vocabulary itself? Start at
 [glossary](../docs/GLOSSARY.md); [02-reward-hacking](02-reward-hacking/README.md)
 is the friendliest first run. Every experiment's "Break it" / "Do it
 yourself" prompt has a worked answer in
-[exercises/](../exercises/README.md), the back of the book. Anything that trains needs the one-time
-install from the [README quickstart](../README.md#quickstart-the-pilot)
-first: `python -m venv .venv` then `.venv/bin/pip install -e ".[train,viz,dev]"`.
+[exercises/](../exercises/README.md), the back of the book. Every command here
+assumes the activated virtual environment from the
+[README setup](../README.md#setup); anything that trains also needs
+`pip install -e ".[train,viz,dev]"`.
 
 ## Grading
 
